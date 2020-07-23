@@ -36,3 +36,16 @@ jobs:
         env:
           MATRIX_CONTEXT: ${{ toJson(matrix) }}
         run: echo "$MATRIX_CONTEXT"
+
+      - name: echo toJSON
+        env:
+            JSON_VALUE: ${{ toJSON(github.event.commits.*.message) }}
+        run: echo $JSON_VALUE
+
+      - name: No Skip CI
+        if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
+        run: echo "No skip-ci entered"
+
+      - name: Skip CI was entered
+        if: "contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
+
