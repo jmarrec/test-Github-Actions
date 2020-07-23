@@ -19,7 +19,17 @@ jobs:
             echo "GITHUB_SHA=$GITHUB_SHA"
             echo "github.sha = ${{ github.sha }}"
             echo "github.event.repository.commits_url = ${{ github.event.repository.commits_url }}"
-            echo "github.event.after = $ {{ github.event.after }}"
+            echo "github.event.after = ${{ github.event.after }}"
+
+      - name: Bash Version
+        run: |
+            commits_url="${{ github.event.repository.commits_url }}"
+            commit_sha="${{ github.event.after }}"
+            url="${commits_url/\{\/sha\}/\/$commit_sha}"
+            data=$(curl $url)
+            echo "$data"
+            last_commit_msg=$(echo $data | jq -r .commit.message)
+            echo "last_commit_msg=$last_commit_msg"
 
       - name: Dump GitHub context
         env:
@@ -60,7 +70,7 @@ jobs:
         run: echo "skip-ci entered"
 
       - name: Python Skip CI?
-        shell: python
+        shell: bash
         run: |
             import sys
             print(sys.version)
@@ -77,6 +87,10 @@ jobs:
             else:
                 print('Not skipping CI')
                 exit(0)
+
+      - name: install requests
+        shell: bash
+        run: pip install requests
 
       - name: Python Skip CI via Github API
         shell: python
