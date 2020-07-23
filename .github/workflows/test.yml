@@ -50,6 +50,22 @@ jobs:
         if: "contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
         run: echo "skip-ci entered"
 
+      - name: Bash Skip CI?
+        shell: bash
+        run: |
+            last_commit_msg=$(git log -1 --pretty=format:"%s")
+            echo "last commit message: $last_commit_msg"
+
+            match_count1=$(echo "$last_commit_msg" | grep -ci "\[skip[ _-]ci\]")
+            match_count2=$(echo "$last_commit_msg" | grep -ci "\[ci[ _-]skip\]")
+            match_count=$((match_count1 + match_count2))
+            echo "There are $match_count of the skip-ci or ci-skip variants"
+            if [[ "$match_count" -eq 0 ]]; then
+                echo "You should not skip CI"
+            else
+                echo "Skip CI"
+            fi;
+
       - name: upload github context JSON github.json
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
