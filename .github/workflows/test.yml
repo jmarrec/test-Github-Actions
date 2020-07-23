@@ -53,7 +53,7 @@ jobs:
       - name: Bash Skip CI?
         shell: bash
         run: |
-          last_commit_msg=$(git log -1 --pretty=format:"%s")
+          last_commit_msg=$(git log -1 --pretty=format:%s)
           echo "last commit message: $last_commit_msg"
 
           echo "try match_count1"
