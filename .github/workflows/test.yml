@@ -57,7 +57,7 @@ jobs:
             print(sys.version)
             import re
             import subprocess
-            result = subprocess.run(['git', 'log', '-1', '--pretty=format:%s'], stdout=subprocess.PIPE)
+            result = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%s'])
             last_commit_msg = result.stdout.decode('utf-8')
             print("last_commit_msg={}".format(last_commit_msg))
             skip_ci = re.compile(r'((?:\[skip[ _-]ci\])|(?:\[ci[ _-]skip\]))', re.IGNORECASE)
