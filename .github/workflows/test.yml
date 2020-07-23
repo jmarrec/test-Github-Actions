@@ -30,52 +30,22 @@ jobs:
             commits_url="${{ github.event.repository.commits_url }}"
             commit_sha="${{ github.event.after }}"
             url="${commits_url/\{\/sha\}/\/$commit_sha}"
-            data=$(curl $url)
-            echo "$data"
+            data=$(curl -L -s -S $url)
             last_commit_msg=$(echo $data | jq -r .commit.message)
             echo "last_commit_msg=$last_commit_msg"
-            ([[ ${last_commit_msg,,} =~ skip[\-_[:space:]]ci ]] || [[ ${last_commit_msg,,} =~ ci[\-_[:space:]]skip ]]) && SKIP_CI=True || SKIP_CI=False
+            ([[ ${last_commit_msg,,} =~ skip[\-_[:space:]]ci ]] || [[ ${last_commit_msg,,} =~ ci[\-_[:space:]]skip ]]) && SKIP_CI=true || SKIP_CI=false
             echo "SKIP_CI=$SKIP_CI"
+            echo "::set-env name=SKIP_CI::$SKIP_CI"
 
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT" | tee github.json
-      - name: Dump job context
-        env:
-          JOB_CONTEXT: ${{ toJson(job) }}
-        run: echo "$JOB_CONTEXT" | tee job.json
-      - name: Dump steps context
-        env:
-          STEPS_CONTEXT: ${{ toJson(steps) }}
-        run: echo "$STEPS_CONTEXT" | tee steps.json
-      - name: Dump runner context
-        env:
-          RUNNER_CONTEXT: ${{ toJson(runner) }}
-        run: echo "$RUNNER_CONTEXT" | tee runner.json
-      - name: Dump strategy context
-        env:
-          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-        run: echo "$STRATEGY_CONTEXT" | tee strategy.json
-      - name: Dump matrix context
-        env:
-          MATRIX_CONTEXT: ${{ toJson(matrix) }}
-        run: echo "$MATRIX_CONTEXT" | tee matrix.json
+      - name: skip step bash version if SKIP_CI
+        if: ${{ !env.SKIP_CI }}
+        run: echo "I AM RUNNING because NOT SKIPPING CI"
+      
+      - name: run step bash version if SKIP_CI
+        if: ${{ env.SKIP_CI }}
+        run: echo "I AM RUNNING because SKIPPING CI"
 
-      - name: echo toJSON
-        env:
-            JSON_VALUE: ${{ toJSON(github.event.commits.*.message) }}
-        run: echo $JSON_VALUE
-
-      - name: No Skip CI
-        if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
-        run: echo "No skip-ci entered"
-
-      - name: Skip CI was entered
-        if: "contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
-        run: echo "skip-ci entered"
-
-      - name: install requests
+      - name: Python version - install requests
         shell: bash
         run: pip install requests
 
@@ -107,32 +77,72 @@ jobs:
             skip_ci = re.compile(r'((?:\[skip[ _-]ci\])|(?:\[ci[ _-]skip\]))', re.IGNORECASE)
             m = skip_ci.search(last_commit_msg)
             if m:
-                print("Skipping CI since the commit message has '{}'".format(m.groups()[0]))
+                print("Skipping CI since the commit message has '{}'"
+                      .format(m.groups()[0]))
+                print("::set-env SKIP_CI=true")
                 exit(0)
             else:
                 print('Not skipping CI')
+                print("::set-env SKIP_CI=false")
                 exit(0)
 
+      # Doesn't work when pull_request, only on push
+      #- name: Skip CI was entered
+        #if: "contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
+        #run: echo "skip-ci entered"
 
-      - name: Bash Skip CI?
-        shell: bash
-        run: |
-          git log -2 --pretty=format:%s
-          last_commit_msg=$(git log -1 --pretty=format:%s)
-          echo "last commit message: $last_commit_msg"
+      # Doesn't work when pull_request, last commit (and only available) is a merge commit anyways
+      # And also the match_count stuff is not working on the CI machine (works on my ubuntu)
+      #- name: Bash Skip CI?
+        #shell: bash
+        #run: |
+          #git log -2 --pretty=format:%s
+          #last_commit_msg=$(git log -1 --pretty=format:%s)
+          #echo "last commit message: $last_commit_msg"
 
-          echo "try match_count1"
-          match_count1=$(echo $last_commit_msg | grep -ci "\[skip[ _-]ci\]")
-          echo "try match_count2"
-          match_count2=$(echo $last_commit_msg | grep -ci "\[ci[ _-]skip\]")
-          echo "try match_count"
-          match_count=$((match_count1 + match_count2))
-          echo "There are $match_count of the skip-ci or ci-skip variants"
-          if [[ "$match_count" -eq 0 ]]; then
-            echo "You should not skip CI"
-          else
-            echo "Skip CI"
-          fi
+          #echo "try match_count1"
+          #match_count1=$(echo $last_commit_msg | grep -ci "\[skip[ _-]ci\]")
+          #echo "try match_count2"
+          #match_count2=$(echo $last_commit_msg | grep -ci "\[ci[ _-]skip\]")
+          #echo "try match_count"
+          #match_count=$((match_count1 + match_count2))
+          #echo "There are $match_count of the skip-ci or ci-skip variants"
+          #if [[ "$match_count" -eq 0 ]]; then
+            #echo "You should not skip CI"
+          #else
+            #echo "Skip CI"
+          #fi
+
+      # Debug section: I saved the logs from both a push and pull_request, useful to do a gvim -d -f for a diff side by side
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT" | tee github.json
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: echo "$JOB_CONTEXT" | tee job.json
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT" | tee steps.json
+      - name: Dump runner context
+        env:
+          RUNNER_CONTEXT: ${{ toJson(runner) }}
+        run: echo "$RUNNER_CONTEXT" | tee runner.json
+      - name: Dump strategy context
+        env:
+          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        run: echo "$STRATEGY_CONTEXT" | tee strategy.json
+      - name: Dump matrix context
+        env:
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        run: echo "$MATRIX_CONTEXT" | tee matrix.json
+
+      - name: echo toJSON
+        env:
+            JSON_VALUE: ${{ toJSON(github.event.commits.*.message) }}
+        run: echo $JSON_VALUE
 
       - name: upload github context JSON github.json
         if: ${{ always() }}
