@@ -50,12 +50,9 @@ jobs:
         if: "contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
         run: echo "skip-ci entered"
 
-
       - name: upload github context JSON github.json
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
             name: github contexts
-            path: *.json
-
-
+            path: ./*.json
