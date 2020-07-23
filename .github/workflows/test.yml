@@ -58,10 +58,10 @@ jobs:
             import re
             import subprocess
             result = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%s'])
-            last_commit_msg = result.stdout.decode('utf-8')
+            last_commit_msg = result.decode('utf-8')
             print("last_commit_msg={}".format(last_commit_msg))
             skip_ci = re.compile(r'((?:\[skip[ _-]ci\])|(?:\[ci[ _-]skip\]))', re.IGNORECASE)
-            m = skip_ci.search(t)
+            m = skip_ci.search(last_commit_msg)
             if m:
                 print("Skipping CI since the commit message has '{}'".format(m.groups()[0]))
                 exit(0)
