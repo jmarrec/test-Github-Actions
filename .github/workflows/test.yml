@@ -56,8 +56,11 @@ jobs:
             last_commit_msg=$(git log -1 --pretty=format:"%s")
             echo "last commit message: $last_commit_msg"
 
+            echo "try match_count1"
             match_count1=$(echo "$last_commit_msg" | grep -ci "\[skip[ _-]ci\]")
+            echo "try match_count2"
             match_count2=$(echo "$last_commit_msg" | grep -ci "\[ci[ _-]skip\]")
+            echo "try match_count"
             match_count=$((match_count1 + match_count2))
             echo "There are $match_count of the skip-ci or ci-skip variants"
             if [[ "$match_count" -eq 0 ]]; then
