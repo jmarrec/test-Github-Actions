@@ -63,7 +63,7 @@ jobs:
             skip_ci = re.compile(r'((?:\[skip[ _-]ci\])|(?:\[ci[ _-]skip\]))', re.IGNORECASE)
             m = skip_ci.search(t)
             if m:
-                print(f"Skipping CI since the commit message has '{m.groups()[0]}'")
+                print("Skipping CI since the commit message has '{}'".format(m.groups()[0]))
                 exit 1
             else:
                 print('Not skipping CI')
