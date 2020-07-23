@@ -53,11 +53,13 @@ jobs:
       - name: Python Skip CI?
         shell: python
         run: |
+            import sys
+            print(sys.version)
             import re
             import subprocess
             result = subprocess.run(['git', 'log', '-1', '--pretty=format:%s'], stdout=subprocess.PIPE)
             last_commit_msg = result.stdout.decode('utf-8')
-            print(f"last_commit_msg=}")
+            print("last_commit_msg={}".format(last_commit_msg))
             skip_ci = re.compile(r'((?:\[skip[ _-]ci\])|(?:\[ci[ _-]skip\]))', re.IGNORECASE)
             m = skip_ci.search(t)
             if m:
@@ -66,7 +68,6 @@ jobs:
             else:
                 print('Not skipping CI')
                 exit 0
-
 
       - name: Bash Skip CI?
         shell: bash
