@@ -21,8 +21,12 @@ jobs:
             echo "github.event.repository.commits_url = ${{ github.event.repository.commits_url }}"
             echo "github.event.after = ${{ github.event.after }}"
 
+            test="${{ contains(toJSON(github.event.commits.*.message), '[skip-ci]') }}"
+            echo "test=$test"
+
       - name: Bash Version
         run: |
+            bash --version
             commits_url="${{ github.event.repository.commits_url }}"
             commit_sha="${{ github.event.after }}"
             url="${commits_url/\{\/sha\}/\/$commit_sha}"
@@ -30,6 +34,8 @@ jobs:
             echo "$data"
             last_commit_msg=$(echo $data | jq -r .commit.message)
             echo "last_commit_msg=$last_commit_msg"
+            ([[ ${last_commit_msg,,} =~ skip[\-_[:space:]]ci ]] || [[ ${last_commit_msg,,} =~ ci[\-_[:space:]]skip ]]) && SKIP_CI=True || SKIP_CI=False
+            echo "SKIP_CI=$SKIP_CI"
 
       - name: Dump GitHub context
         env:
@@ -68,25 +74,6 @@ jobs:
       - name: Skip CI was entered
         if: "contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
         run: echo "skip-ci entered"
-
-      - name: Python Skip CI?
-        shell: bash
-        run: |
-            import sys
-            print(sys.version)
-            import re
-            import subprocess
-            result = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%s'])
-            last_commit_msg = result.decode('utf-8')
-            print("last_commit_msg={}".format(last_commit_msg))
-            skip_ci = re.compile(r'((?:\[skip[ _-]ci\])|(?:\[ci[ _-]skip\]))', re.IGNORECASE)
-            m = skip_ci.search(last_commit_msg)
-            if m:
-                print("Skipping CI since the commit message has '{}'".format(m.groups()[0]))
-                exit(0)
-            else:
-                print('Not skipping CI')
-                exit(0)
 
       - name: install requests
         shell: bash
