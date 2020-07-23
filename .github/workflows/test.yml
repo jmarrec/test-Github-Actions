@@ -48,4 +48,5 @@ jobs:
 
       - name: Skip CI was entered
         if: "contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
+        run: echo "skip-ci entered"
 
