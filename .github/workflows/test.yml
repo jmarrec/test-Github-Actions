@@ -12,6 +12,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Echo some SHAs
+        run: |
+            echo "GITHUB_REF=$GITHUB_REF GITHUB_BASE_REF=$GITHUB_BASE_REF GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
+            echo "GITHUB_EVENT_PATH=$GITHUB_EVENT_PATH"
+            echo "GITHUB_SHA=$GITHUB_SHA"
+            echo "github.sha = ${{ github.sha }}"
+            echo "github.event.repository.commits_url = ${{ github.event.repository.commits_url }}"
+            echo "github.event.after = $ {{ github.event.after }}"
+
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
@@ -68,6 +77,41 @@ jobs:
             else:
                 print('Not skipping CI')
                 exit(0)
+
+      - name: Python Skip CI via Github API
+        shell: python
+        run: |
+            import sys
+            print(sys.version)
+            import re
+            import subprocess
+            import json
+            import requests
+
+            commits_url = "${{ github.event.repository.commits_url }}"
+            print("commits_url={}".format(commits_url))
+
+            commit_sha = "${{ github.event.after }}"
+            print("commit_sha={}".format(commit_sha))
+            url = commits_url.replace('{/sha}', '/{}'.format(commit_sha))
+
+            r = requests.get(url)
+            if not r.ok:
+                print("Something went wrong when querying {}, status={}".format(url, r.status_code))
+                exit(0)
+            data = r.json()
+            last_commit_msg = data['commit']['message']
+
+            print("last_commit_msg={}".format(last_commit_msg))
+            skip_ci = re.compile(r'((?:\[skip[ _-]ci\])|(?:\[ci[ _-]skip\]))', re.IGNORECASE)
+            m = skip_ci.search(last_commit_msg)
+            if m:
+                print("Skipping CI since the commit message has '{}'".format(m.groups()[0]))
+                exit(0)
+            else:
+                print('Not skipping CI')
+                exit(0)
+
 
       - name: Bash Skip CI?
         shell: bash
