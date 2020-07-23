@@ -50,6 +50,24 @@ jobs:
         if: "contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
         run: echo "skip-ci entered"
 
+      - name: Python Skip CI?
+        shell: python
+        run: |
+            import re
+            import subprocess
+            result = subprocess.run(['git', 'log', '-1', '--pretty=format:%s'], stdout=subprocess.PIPE)
+            last_commit_msg = result.stdout.decode('utf-8')
+            print(f"last_commit_msg=}")
+            skip_ci = re.compile(r'((?:\[skip[ _-]ci\])|(?:\[ci[ _-]skip\]))', re.IGNORECASE)
+            m = skip_ci.search(t)
+            if m:
+                print(f"Skipping CI since the commit message has '{m.groups()[0]}'")
+                exit 1
+            else:
+                print('Not skipping CI')
+                exit 0
+
+
       - name: Bash Skip CI?
         shell: bash
         run: |
