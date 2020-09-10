@@ -134,7 +134,7 @@ jobs:
       if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url) }}
         asset_path: ./md5sums.txt
@@ -145,7 +145,7 @@ jobs:
       if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url) }}
         asset_path: ./*.json
