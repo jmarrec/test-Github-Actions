@@ -50,8 +50,16 @@ jobs:
         #MATRIX_CONTEXT: ${{ toJson(matrix) }}
       #run: echo "$MATRIX_CONTEXT"
 
+    - name: Where is the damn action?
+      run: |
+        pwd
+        ls
+        ls .github
+        ls .github/actions/
+        ls .github/actions/build_context
+
     - name: Call my own action
-      uses: ./.github/actions/build_context@master
+      uses: ./.github/actions/build_context
       with:
         who-to-greet: 'Mona the Octocat'
 
