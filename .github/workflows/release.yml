@@ -26,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v2
+
     - name: Print Input
       shell: bash
       run: |
@@ -35,6 +37,33 @@ jobs:
         echo "Release Name: ${{ github.event.inputs.release_name }}"
         echo "GITHUB_EVENT_PATH=$GITHUB_EVENT_PATH"
         cat $GITHUB_EVENT_PATH
+
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: |
+        echo "$GITHUB_CONTEXT" | tee github.json
+    - name: Dump job context
+      env:
+        JOB_CONTEXT: ${{ toJson(job) }}
+      run: echo "$JOB_CONTEXT" | tee job.json
+    - name: Dump steps context
+      env:
+        STEPS_CONTEXT: ${{ toJson(steps) }}
+      run: echo "$STEPS_CONTEXT" | tee steps.json
+    - name: Dump runner context
+      env:
+        RUNNER_CONTEXT: ${{ toJson(runner) }}
+      run: echo "$RUNNER_CONTEXT" | tee runner.json
+    - name: Dump strategy context
+      env:
+        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+      run: echo "$STRATEGY_CONTEXT" | tee strategy.json
+    - name: Dump matrix context
+      env:
+        MATRIX_CONTEXT: ${{ toJson(matrix) }}
+      run: echo "$MATRIX_CONTEXT" | tee matrix.json
+
     - name: Locate artifacts
       id: locate_artifacts
       shell: bash
@@ -56,20 +85,54 @@ jobs:
           echo "$url"
         done
 
-    #- name: Download installers
-      #uses: actions/download-artifact@v2
-      #with:
-        #name:
-
-    - name: Create Release
+    - name: Create a release if triggered manually
       id: create_release
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/create-release@v1.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          release_name: ${{ github.event.inputs.release_name }}
+          body: |
+            Installer for ${{ github.event.inputs.commit_sha }}, see Github Actions run [${{ github.event.inputs.actions_run_id }}](https://github.com/openstudiocoalition/OpenStudioApplication/actions/runs/${{ github.event.inputs.actions_run_id }}$)
+          draft: true
+          prerelease: true
+
+    - name: Create a release if triggered by a tag
+      id: create_release
+      if: github.event_name != 'workflow_dispatch' && contains(github.ref, 'refs/tags')
       uses: actions/create-release@v1.1.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.event.inputs.tag_name }}
-        release_name: ${{ github.event.inputs.release_name }}
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
         body: |
-          Installer for ${{ github.event.inputs.commit_sha }}, see Github Actions run [${{ github.event.inputs.actions_run_id }}$](https://github.com/openstudiocoalition/OpenStudioApplication/actions/runs/${{ github.event.inputs.actions_run_id }}$)
-        draft: true
+          Release Notes pending
+        draft: false
         prerelease: true
+
+    - name: Create a md5sum file
+      run: |
+        md5sum *.json > md5sums.txt
+        cat md5sums.txt
+
+    - name: Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./md5sums.txt
+        asset_name: md5sums.txt
+        asset_content_type: text/plain
+
+    - name: Release Asset Glob
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./*.json
+        asset_content_type: application/json
