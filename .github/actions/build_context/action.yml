@@ -23,35 +23,43 @@ runs:
     - name: Dump runner info
       env:
         GITHUB_CONTEXT: ${{ toJson(env) }}
+      shell: bash
       run: |
         echo "$GITHUB_CONTEXT" | tee env.json
     - name: Dump GitHub context
       env:
         GITHUB_CONTEXT: ${{ toJson(github) }}
+      shell: bash
       run: |
         echo "$GITHUB_CONTEXT" | tee github.json
     - name: Dump job context
       env:
         JOB_CONTEXT: ${{ toJson(job) }}
+      shell: bash
       run: echo "$JOB_CONTEXT" | tee job.json
     - name: Dump steps context
       env:
         STEPS_CONTEXT: ${{ toJson(steps) }}
+      shell: bash
       run: echo "$STEPS_CONTEXT" | tee steps.json
     - name: Dump runner context
       env:
         RUNNER_CONTEXT: ${{ toJson(runner) }}
+      shell: bash
       run: echo "$RUNNER_CONTEXT" | tee runner.json
     - name: Dump strategy context
       env:
         STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+      shell: bash
       run: echo "$STRATEGY_CONTEXT" | tee strategy.json
     - name: Dump matrix context
       env:
         MATRIX_CONTEXT: ${{ toJson(matrix) }}
+      shell: bash
       run: echo "$MATRIX_CONTEXT" | tee matrix.json
 
     - name: Create a md5sum file
+      shell: bash
       run: |
         md5sum *.json > md5sums.txt
         cat md5sums.txt
