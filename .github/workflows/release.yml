@@ -94,7 +94,7 @@ jobs:
 
     - name: Create a release if triggered manually
       if: github.event_name == 'workflow_dispatch'
-      id: create_release
+      id: create_release_manual
       uses: actions/create-release@v1.1.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -107,7 +107,7 @@ jobs:
         prerelease: true
 
     - name: Create a release if triggered by a tag
-      id: create_release
+      id: create_release_tag
       if: github.event_name != 'workflow_dispatch' && contains(github.ref, 'refs/tags')
       uses: actions/create-release@v1.1.1
       env:
@@ -121,28 +121,32 @@ jobs:
         prerelease: true
 
     - name: Create a md5sum file
-      if: ${{ steps.create_release.outputs.upload_url }}
+      if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
       run: |
         md5sum *.json > md5sums.txt
         cat md5sums.txt
+        echo "Manual: ${{ steps.create_release_manual.outputs.upload_url }}"
+        echo "Tag: ${{ steps.create_release_tag.outputs.upload_url }}"
+        echo "join?: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url }}"
+
 
     - name: Release Asset
-      if: ${{ steps.create_release.outputs.upload_url }}
+      if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url }}
         asset_path: ./md5sums.txt
         asset_name: md5sums.txt
         asset_content_type: text/plain
 
     - name: Release Asset Glob
-      if: ${{ steps.create_release.outputs.upload_url }}
+      if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url }}
         asset_path: ./*.json
         asset_content_type: application/json
