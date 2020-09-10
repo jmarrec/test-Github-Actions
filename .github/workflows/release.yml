@@ -1,6 +1,11 @@
 name: Test release from existing Actions run
 
 on:
+  push:
+    branches: [ master ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
   workflow_dispatch:
     inputs:
       actions_run_id:
@@ -22,8 +27,10 @@ on:
 
 
 jobs:
+
   release_installers:
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
 
     steps:
     - uses: actions/checkout@v2
@@ -114,11 +121,13 @@ jobs:
         prerelease: true
 
     - name: Create a md5sum file
+      if: ${{ steps.create_release.outputs.upload_url }}
       run: |
         md5sum *.json > md5sums.txt
         cat md5sums.txt
 
     - name: Release Asset
+      if: ${{ steps.create_release.outputs.upload_url }}
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -129,6 +138,7 @@ jobs:
         asset_content_type: text/plain
 
     - name: Release Asset Glob
+      if: ${{ steps.create_release.outputs.upload_url }}
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
