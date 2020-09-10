@@ -3,9 +3,17 @@ name: Test bed
 on:
   push:
     branches: [ master ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
   pull_request:
     branches: [ master, develop ]
-
+  workflow_dispatch:
+    inputs:
+      actions_run_id:
+        description: 'The Github Actions run ID in which we will find the artifacts'
+        required: true
+        default: '247094624'
 jobs:
   build:
     runs-on: ubuntu-latest
