@@ -127,7 +127,7 @@ jobs:
         cat md5sums.txt
         echo "Manual: ${{ steps.create_release_manual.outputs.upload_url }}"
         echo "Tag: ${{ steps.create_release_tag.outputs.upload_url }}"
-        echo "join?: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url }}"
+        echo "join?: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url) }}"
 
 
     - name: Release Asset
@@ -136,7 +136,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
-        upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url }}
+        upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url) }}
         asset_path: ./md5sums.txt
         asset_name: md5sums.txt
         asset_content_type: text/plain
@@ -147,6 +147,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
-        upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url }}
+        upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url) }}
         asset_path: ./*.json
         asset_content_type: application/json
