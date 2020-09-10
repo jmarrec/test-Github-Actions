@@ -30,7 +30,7 @@ jobs:
 
   release_installers:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
+    # if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
 
     steps:
     - uses: actions/checkout@v2
@@ -91,5 +91,19 @@ jobs:
         for url in "${{steps.locate_artifacts.outputs.URLS}}"; do
           echo "$url"
         done
+
+    - name: Create a release if triggered manually
+      id: create_release
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/create-release@v1.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          release_name: ${{ github.event.inputs.release_name }}
+          body: |
+            Installer for ${{ github.event.inputs.commit_sha }}, see Github Actions run [${{ github.event.inputs.actions_run_id }}](https://github.com/openstudiocoalition/OpenStudioApplication/actions/runs/${{ github.event.inputs.actions_run_id }}$)
+          draft: true
+          prerelease: true
 
 
