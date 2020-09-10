@@ -51,7 +51,7 @@ jobs:
       #run: echo "$MATRIX_CONTEXT"
 
     - name: Call my own action
-      uses: ./.github/actions/build_context@${{ github.sha }}
+      uses: ./.github/actions/build_context@master
       with:
         who-to-greet: 'Mona the Octocat'
 
