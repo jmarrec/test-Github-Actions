@@ -51,11 +51,11 @@ jobs:
       #run: echo "$MATRIX_CONTEXT"
 
     - name: Call my own action
-      uses: actions/build_context
+      uses: .github/actions/build_context
       with:
         who-to-greet: 'Mona the Octocat'
 
-    - run: echo random-number ${{ steps.foo.outputs.random-number }} 
+    - run: echo random-number ${{ steps.foo.outputs.random-number }}
       shell: bash
 
     - name: ls
