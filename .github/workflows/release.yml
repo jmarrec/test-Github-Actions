@@ -155,7 +155,7 @@ jobs:
         upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url) }}
         asset_path: ./test.sh
         asset_name: test.sh
-        asset_content_type: text/plain
+        asset_content_type: application/x-shellscript
 
     - name: Release Asset Glob
       if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
