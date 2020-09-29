@@ -96,6 +96,6 @@ jobs:
 
     - name: Cat all md5sums into one
       shell: bash
-      run:
+      run: |
           cat ./artifact/* > md5sums.txt
           cat md5sums.txt
