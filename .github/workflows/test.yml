@@ -71,8 +71,34 @@ jobs:
       shell: bash
       run: |
           echo "Coucou" > test.txt
-          md5sum test.txt
+          md5sum test.txt > ${{ matrix.os }}.md5sum
+
+
+    - name: Upload md5sum artifacts
+      uses: actions/upload-artifact@v2
+      with:
+          path: ${{ matrix.os }}.md5sum
 
     - name: ls
       run: |
         ls *.json
+
+  makemd5:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+
+    - name: Display structure of downloaded files
+      shell: bash
+      run: ls -R
+
+    - name: Cat all md5sums into one
+      shell: bash
+      run:
+          cat * > md5sums.txt
+          cat md5sums.txt
+
+    - name: Try something craaaazy
+      shell: bash
+      run: |
+          echo "$ {{ jobs.build.strategy.matrix }}"
