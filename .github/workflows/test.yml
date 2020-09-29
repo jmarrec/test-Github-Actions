@@ -21,7 +21,7 @@ jobs:
       # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-18.04, ubuntu-20.04, windows-latest]
     steps:
     - uses: actions/checkout@v2
 
@@ -66,6 +66,12 @@ jobs:
 
     - run: echo random-number ${{ steps.foo.outputs.random-number }}
       shell: bash
+
+    - name: md5sum
+      shell: bash
+      run: |
+          echo "Coucou" > test.txt
+          md5sum test.txt
 
     - name: ls
       run: |
