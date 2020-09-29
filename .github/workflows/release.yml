@@ -130,6 +130,11 @@ jobs:
         echo "join?: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url) }}"
 
 
+    - name: Create a 755 mode script to see if permissions are maintained by upload
+      run: |
+          echo "Hello World" > test.sh
+          chmod +x test.sh
+
     - name: Release Asset
       if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
       uses: actions/upload-release-asset@v1
@@ -139,6 +144,17 @@ jobs:
         upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url) }}
         asset_path: ./md5sums.txt
         asset_name: md5sums.txt
+        asset_content_type: text/plain
+
+    - name: Release executable script
+      if: github.event_name == 'workflow_dispatch' || contains(github.ref, 'refs/tags')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ format('{0}{1}', steps.create_release_manual.outputs.upload_url, steps.create_release_tag.outputs.upload_url) }}
+        asset_path: ./test.sh
+        asset_name: test.sh
         asset_content_type: text/plain
 
     - name: Release Asset Glob
