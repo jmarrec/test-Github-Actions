@@ -99,8 +99,3 @@ jobs:
       run:
           cat ./artifact/* > md5sums.txt
           cat md5sums.txt
-
-    - name: Try something craaaazy
-      shell: bash
-      run: |
-          echo "${{ jobs.build.strategy.matrix }}"
