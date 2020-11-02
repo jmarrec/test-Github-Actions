@@ -77,7 +77,9 @@ jobs:
         if [ "$RUNNER_OS" == "Windows" ]; then
           #echo CMAKE_GENERATOR=-G 'Visual Studio 16 2019' -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
           #echo CMAKE_GENERATOR="-G 'Visual Studio 16 2019' -A ${{ matrix.vs-generator }}" >> $GITHUB_ENV
-          echo CMAKE_GENERATOR='-G \'Visual Studio 16 2019\' -A ${{ matrix.vs-generator }}' >> $GITHUB_ENV
+          # echo CMAKE_GENERATOR='-G \'Visual Studio 16 2019\' -A ${{ matrix.vs-generator }}' >> $GITHUB_ENV  # Error
+          echo CMAKE_GENERATOR=-G \'Visual Studio 16 2019\' -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+
         fi;
 
     - name: did Cmake generator work?
