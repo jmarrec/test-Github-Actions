@@ -80,9 +80,12 @@ jobs:
           # echo CMAKE_GENERATOR="-G 'Visual Studio 16 2019' -A ${{ matrix.vs-generator }}" >> $GITHUB_ENV
           #   quoted: cmake '-G '\''Visual Studio 16 2019'\'' -A Win32'
           # echo CMAKE_GENERATOR='-G \'Visual Studio 16 2019\' -A ${{ matrix.vs-generator }}' >> $GITHUB_ENV  # Error
-          echo CMAKE_GENERATOR=-G \"Visual Studio 16 2019\" -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          # echo CMAKE_GENERATOR=-G \'Visual Studio 16 2019\' -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
           # Unquoted: cmake -G ''\''Visual' Studio 16 '2019'\''' -A Win32
           #   quoted: cmake '-G '\''Visual Studio 16 2019'\'' -A Win32'
+          echo CMAKE_GENERATOR=-G \"Visual Studio 16 2019\" -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          #   quoted: cmake '-G "Visual Studio 16 2019" -A Win32'
+
 
 
         fi;
@@ -91,7 +94,7 @@ jobs:
       shell: bash
       run: |
         set -x
-        cmake "$CMAKE_GENERATOR"
+        cmake $CMAKE_GENERATOR
 
     - name: Where is the damn action?
       shell: bash
