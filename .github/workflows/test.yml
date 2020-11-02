@@ -89,6 +89,8 @@ jobs:
           # echo CMAKE_GENERATOR=-G "Visual Studio 16 2019" -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
           # unquoted: cmake -G Visual Studio 16 2019 -A Win32
           echo CMAKE_GENERATOR=-G "\"Visual Studio 16 2019\"" -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          # unquoted: cmake -G '"Visual' Studio 16 '2019"' -A Win32
+          echo CMAKE_GENERATOR=-G "Visual\ Studio\ 16\ 2019" -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
 
 
 
