@@ -68,7 +68,23 @@ jobs:
         #MATRIX_CONTEXT: ${{ toJson(matrix) }}
       #run: echo "$MATRIX_CONTEXT"
 
+    - name: test Cmake Generator
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+
+          echo "Setting CMAKE_GENERATOR='-G \"Visual Studio 16 2019\" -A ${{ matrix.vs-generator }}'"
+          echo CMAKE_GENERATOR=-G 'Visual Studio 16 2019' -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+        fi;
+
+    - name: did Cmake generator work?
+      shell: bash
+      run: |
+        set -x
+        cmake $CMAKE_GENERATOR
+
     - name: Where is the damn action?
+      shell: bash
       run: |
         echo "${{ github.event.pull_request.body }}"
         pwd
@@ -99,6 +115,7 @@ jobs:
           path: ${{ matrix.os }}.md5sum
 
     - name: ls
+      shell: bash
       run: |
         ls *.json
 
