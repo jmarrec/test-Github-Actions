@@ -86,7 +86,7 @@ jobs:
       shell: bash
       run: |
         set -x
-        cmake $CMAKE_GENERATOR
+        cmake "$CMAKE_GENERATOR"
 
     - name: Where is the damn action?
       shell: bash
