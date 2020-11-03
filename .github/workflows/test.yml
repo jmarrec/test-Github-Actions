@@ -35,8 +35,11 @@ jobs:
     - name : test python version
       shell: bash
       run: |
+          set -x
           python --version
           ruby --version || true
+          cl || true
+          which cl
 
     - uses: actions/setup-python@v2
       with:
