@@ -101,6 +101,7 @@ jobs:
       run: |
         call vcvarsall.bat x64
         cmake -G Ninja -DPython_ROOT_DIR="${{ runner.tool_cache }}/Python/${{ steps.setup-python.outputs.python-version }}/x64/" -DCMAKE_BUILD_TYPE=Release ../
+        ninja
 
     - name: Configure CMake (Unix)
       working-directory: ./build
@@ -108,10 +109,11 @@ jobs:
       shell: bash
       run: |
         cmake -G Ninja -DPython_ROOT_DIR="${{ runner.tool_cache }}/Python/${{ steps.setup-python.outputs.python-version }}/x64/" -DCMAKE_BUILD_TYPE=Release ../
-
-    - name: Build
-      working-directory: ./build
-      shell: bash
-      # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run:  |
         ninja
+
+    #- name: Build
+      #working-directory: ./build
+      #shell: bash
+      ## Execute the build.  You can specify a specific target with "--target <NAME>"
+      #run:  |
+        #ninja
