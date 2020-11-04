@@ -76,7 +76,7 @@ jobs:
           choco install ninja
 
           echo "here is the list of installed MSBuild"
-          call /c "vswhere -products * -requires Microsoft.Component.MSBuild -property installationPath"
+          cmd /c "vswhere -products * -requires Microsoft.Component.MSBuild -property installationPath"
 
           # C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise
           MSVC_DIR=$(cmd.exe /c "vswhere -products * -requires Microsoft.Component.MSBuild -property installationPath -latest")
