@@ -44,6 +44,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Set up Python ${{ matrix.python-version }}
+      id: setup-python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
@@ -52,6 +53,10 @@ jobs:
       shell: bash
       run: |
         set -x
+
+        echo "${{ steps.setup-python.outputs.python-version }}"
+        echo "${{ steps.setup-python.outputs.* }}"
+
         if [ "$RUNNER_OS" == "Linux" ]; then
           echo "Using Apt to install ninja"
           sudo apt update
@@ -76,15 +81,8 @@ jobs:
 
     - name: Configure CMake
       working-directory: ./build
-      shell: bash
       run: |
-        set -x
-        which ninja || true
-        echo "Launching a build with BUILD_PYTHON_BINDINGS=ON and BUILD_PYTHON_PIP_PACKAGE=ON, turning off as many other things as possible to speed it up"
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-              -DBUILD_PYTHON_BINDINGS=ON -DBUILD_PYTHON_PIP_PACKAGE=ON \
-              -DBUILD_TESTING=OFF -DBUILD_PACKAGE=OFF -DBUILD_RUBY_BINDINGS=OFF -DBUILD_CLI=OFF \
-              ../
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE ../
 
     - name: Build
       working-directory: ./build
