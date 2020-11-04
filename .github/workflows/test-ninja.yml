@@ -79,8 +79,18 @@ jobs:
     - name: Create Build Directory
       run: cmake -E make_directory ./build/
 
-    - name: Configure CMake
+    - name: Configure CMake (Windows)
       working-directory: ./build
+      if: runner.os == "Windows"
+      shell: cmd
+      run: |
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+        cmake -G Ninja -DPython_ROOT_DIR="${{ runner.tool_cache }}/Python/${{ steps.setup-python.outputs.python-version }}/x64/" -DCMAKE_BUILD_TYPE=Release ../
+    
+    - name: Configure CMake (Unix)
+      working-directory: ./build
+      if: runner.os != "Windows"
+      shell: cmd
       run: |
         cmake -G Ninja -DPython_ROOT_DIR="${{ runner.tool_cache }}/Python/${{ steps.setup-python.outputs.python-version }}/x64/" -DCMAKE_BUILD_TYPE=Release ../
 
