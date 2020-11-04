@@ -74,6 +74,9 @@ jobs:
         elif [ "$RUNNER_OS" == "Windows" ]; then
           echo "Using chocolatey to install ninja"
           choco install ninja
+
+          cmd.exe /c "vswhere -products * -requires Microsoft.Component.MSBuild -property installationPath -latest"
+
         fi;
 
     - name: Create Build Directory
