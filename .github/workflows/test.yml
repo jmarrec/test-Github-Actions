@@ -35,13 +35,13 @@ jobs:
 
 
     - name: test conditional based on env (TRUE_BOOL)
-      if: ${{ env.TRUE_BOOL }}
+      if: env.TRUE_BOOL == 'true'
       shell: bash
       run: |
         echo "It runs!"
 
     - name: test conditional based on env (FALSE_BOOL)
-      if: ${{ env.FALSE_BOOL }}
+      if: env.FALSE_BOOL == 'true'
       shell: bash
       run: |
         echo "It runs!"
