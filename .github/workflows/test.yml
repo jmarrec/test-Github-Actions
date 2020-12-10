@@ -14,6 +14,11 @@ on:
         description: 'The Github Actions run ID in which we will find the artifacts'
         required: true
         default: '247094624'
+
+env:
+  TRUE_BOOL: true
+  FALSE_BOOL: false
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -27,6 +32,19 @@ jobs:
             vs-generator: Win32
     steps:
     - uses: actions/checkout@v2
+
+
+    - name: test conditional based on env (TRUE_BOOL)
+      if: ${{ env.TRUE_BOOL }}
+      shell: bash
+      run: |
+        echo "It runs!"
+
+    - name: test conditional based on env (FALSE_BOOL)
+      if: ${{ env.FALSE_BOOL }}
+      shell: bash
+      run: |
+        echo "It runs!"
 
     - uses: actions/setup-python@v2
       with:
