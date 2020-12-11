@@ -10,7 +10,7 @@ on:
       use_pypi:
         description: 'Whether to use testpy (default, false) or pypi (true)'
         required: true
-        default: false
+        default: 'false'
 
 jobs:
   test_python_bindings:
@@ -22,6 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         name: [Ubuntu, macOS, Windows_py37, Windows_py38, Windows_py39]
+        arch: [x64, x86]
         include:
         - name: Ubuntu
           os: ubuntu-18.04
@@ -51,6 +52,7 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+        architecture: ${{ matrix.arch }}
 
     - name: Install openstudio bindings from testpypi
       if: github.event.inputs.use_pypi != 'true'
