@@ -1,0 +1,26 @@
+name: 'Skip CI'
+description: 'Checks if the commit message contains `ci-skip`, `skip-ci`, `skip ci` or `ci skip`, works with pull requests too'
+
+outputs:
+  skip-ci:
+    description: "True if skipping"
+    value: ${{ steps.skip-ci.outputs.skip-ci }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: random-number-generator
+      shell: bash
+      run: |
+        bash --version
+        commits_url="${{ github.event.repository.commits_url }}"
+        commit_sha="${{ github.event.after }}"
+        url="${commits_url/\{\/sha\}/\/$commit_sha}"
+        data=$(curl -L -s -S $url)
+        last_commit_msg=$(echo $data | jq -r .commit.message)
+        echo "last_commit_msg=$last_commit_msg"
+        ([[ ${last_commit_msg,,} =~ skip[\-_[:space:]]ci ]] || [[ ${last_commit_msg,,} =~ ci[\-_[:space:]]skip ]]) && SKIP_CI=true || SKIP_CI=false
+        echo "skip-ci=$SKIP_CI"
+        echo "::set-output name=skip-ci::$SKIP_CI"
+
+

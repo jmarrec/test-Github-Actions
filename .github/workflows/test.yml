@@ -24,6 +24,7 @@ defaults:
     shell: bash
 
 jobs:
+
   build:
     # Note: as of 2021-01-29, this only works for push, not for pull request
     if: "!(contains(github.event.head_commit.message, 'skip') && contains(github.event.head_commit.message, 'ci'))"
@@ -38,7 +39,6 @@ jobs:
             vs-generator: Win32
     steps:
     - uses: actions/checkout@v2
-
 
     - name: test conditional based on env (TRUE_BOOL)
       if: env.TRUE_BOOL == 'true'
@@ -81,6 +81,9 @@ jobs:
 
           test="${{ contains(toJSON(github.event.commits.*.message), '[skip-ci]') }}"
           echo "test=$test"
+
+    - name: Action Version
+      uses: ./.github/actions/skip_ci
 
     - name: Bash Version
       run: |
