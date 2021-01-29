@@ -21,6 +21,7 @@ env:
 
 jobs:
   build:
+    if: "!(contains(github.event.head_commit.message, 'skip') && contains(github.event.head_commit.message, 'ci'))"
     runs-on: ${{ matrix.os }}
     strategy:
       # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
@@ -57,7 +58,7 @@ jobs:
           python --version
           ruby --version || true
           cl || true
-          which cl
+          which cl || true
 
     - uses: actions/setup-python@v2
       with:
