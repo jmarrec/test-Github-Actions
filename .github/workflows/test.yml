@@ -19,6 +19,10 @@ env:
   TRUE_BOOL: true
   FALSE_BOOL: false
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     # Note: as of 2021-01-29, this only works for push, not for pull request
@@ -66,6 +70,7 @@ jobs:
         python-version: '3.8'
 
     - name: Echo some SHAs
+      shell: bash
       run: |
           echo "GITHUB_REF=$GITHUB_REF GITHUB_BASE_REF=$GITHUB_BASE_REF GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
           echo "GITHUB_EVENT_PATH=$GITHUB_EVENT_PATH"
