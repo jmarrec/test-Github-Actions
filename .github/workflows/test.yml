@@ -3,14 +3,66 @@ name: Test bed
 on:
   push:
     branches: [ master, develop ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
   pull_request:
     branches: [ master, develop ]
+  workflow_dispatch:
+    inputs:
+      actions_run_id:
+        description: 'The Github Actions run ID in which we will find the artifacts'
+        required: true
+        default: '247094624'
+
+env:
+  TRUE_BOOL: true
+  FALSE_BOOL: false
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    if: "!(contains(github.event.head_commit.message, 'skip') && contains(github.event.head_commit.message, 'ci'))"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04, windows-latest]
+        include:
+          - os: windows-latest
+            vs-generator: Win32
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
+
+
+    - name: test conditional based on env (TRUE_BOOL)
+      if: env.TRUE_BOOL == 'true'
+      shell: bash
+      run: |
+        echo "It runs!"
+
+    - name: test conditional based on env (FALSE_BOOL)
+      if: env.FALSE_BOOL == 'true'
+      shell: bash
+      run: |
+        echo "It runs!"
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name : test python version
+      shell: bash
+      run: |
+          set -x
+          python --version
+          ruby --version || true
+          cl || true
+          which cl || true
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.7'
 
       - name: Echo some SHAs
         run: |
@@ -40,7 +92,7 @@ jobs:
       - name: skip step bash version if SKIP_CI
         if: ${{ !env.SKIP_CI }}
         run: echo "I AM RUNNING because NOT SKIPPING CI"
-      
+
       - name: run step bash version if SKIP_CI
         if: ${{ env.SKIP_CI }}
         run: echo "I AM RUNNING because SKIPPING CI"
@@ -139,14 +191,87 @@ jobs:
           MATRIX_CONTEXT: ${{ toJson(matrix) }}
         run: echo "$MATRIX_CONTEXT" | tee matrix.json
 
-      - name: echo toJSON
-        env:
-            JSON_VALUE: ${{ toJSON(github.event.commits.*.message) }}
-        run: echo $JSON_VALUE
 
-      - name: upload github context JSON github.json
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v2
-        with:
-            name: github contexts
-            path: ./*.json
+    - name: test Cmake Generator
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          #echo CMAKE_GENERATOR=-G 'Visual Studio 16 2019' -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          #   quoted: cmake '-G Visual Studio 16 2019 -A Win32'
+          # echo CMAKE_GENERATOR="-G 'Visual Studio 16 2019' -A ${{ matrix.vs-generator }}" >> $GITHUB_ENV
+          #   quoted: cmake '-G '\''Visual Studio 16 2019'\'' -A Win32'
+          # echo CMAKE_GENERATOR='-G \'Visual Studio 16 2019\' -A ${{ matrix.vs-generator }}' >> $GITHUB_ENV  # Error
+          # echo CMAKE_GENERATOR=-G \'Visual Studio 16 2019\' -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          # Unquoted: cmake -G ''\''Visual' Studio 16 '2019'\''' -A Win32
+          #   quoted: cmake '-G '\''Visual Studio 16 2019'\'' -A Win32'
+          # echo CMAKE_GENERATOR=-G \"Visual Studio 16 2019\" -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          # unquoted: cmake -G '"Visual' Studio 16 '2019"' -A Win32
+          #   quoted: cmake '-G "Visual Studio 16 2019" -A Win32'
+          # echo CMAKE_GENERATOR=-G "Visual Studio 16 2019" -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          # unquoted: cmake -G Visual Studio 16 2019 -A Win32
+          # echo CMAKE_GENERATOR=-G "\"Visual Studio 16 2019\"" -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          # unquoted: cmake -G '"Visual' Studio 16 '2019"' -A Win32
+          # echo CMAKE_GENERATOR=-G "Visual\ Studio\ 16\ 2019" -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          # unquoted: cmake -G 'Visual\' 'Studio\' '16\' 2019 -A Win32
+          echo CMAKE_GENERATOR=-G Visual\\ Studio\\ 16\\ 2019 -A ${{ matrix.vs-generator }} >> $GITHUB_ENV
+          # unquoted: cmake -G 'Visual\' 'Studio\' '16\' 2019 -A Win32
+
+        fi;
+
+    - name: did Cmake generator work?
+      shell: bash
+      run: |
+        set -x
+        cmake $CMAKE_GENERATOR
+
+    - name: Where is the damn action?
+      shell: bash
+      run: |
+        echo "${{ github.event.pull_request.body }}"
+        pwd
+        ls
+        ls .github
+        ls .github/actions/
+        ls .github/actions/build_context
+
+    - name: Call my own action
+      uses: ./.github/actions/build_context
+      with:
+        who-to-greet: 'Mona the Octocat'
+
+    - run: echo random-number ${{ steps.foo.outputs.random-number }}
+      shell: bash
+
+    - name: md5sum
+      shell: bash
+      run: |
+          echo "Coucou" > test.txt
+          echo "Note that as long as you put shell=bash, this works plenty fine on windows-latest too"
+          md5sum test.txt > ${{ matrix.os }}.md5sum
+
+
+    - name: Upload md5sum artifacts
+      uses: actions/upload-artifact@v2
+      with:
+          path: ${{ matrix.os }}.md5sum
+
+    - name: ls
+      shell: bash
+      run: |
+        ls *.json
+
+  makemd5:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/download-artifact@v2
+
+    - name: Display structure of downloaded files
+      shell: bash
+      run: ls -R
+
+    - name: Cat all md5sums into one
+      shell: bash
+      run: |
+          cat ./artifact/* > md5sums.txt
+          cat md5sums.txt
