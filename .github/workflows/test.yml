@@ -87,7 +87,7 @@ jobs:
           echo "last_commit_msg=$last_commit_msg"
           ([[ ${last_commit_msg,,} =~ skip[\-_[:space:]]ci ]] || [[ ${last_commit_msg,,} =~ ci[\-_[:space:]]skip ]]) && SKIP_CI=true || SKIP_CI=false
           echo "SKIP_CI=$SKIP_CI"
-          echo "::set-env name=SKIP_CI::$SKIP_CI"
+          echo SKIP_CI::$SKIP_CI >> $GITHUB_ENV
 
     - name: skip step bash version if SKIP_CI
       if: ${{ !env.SKIP_CI }}
@@ -129,13 +129,14 @@ jobs:
           skip_ci = re.compile(r'((?:\[skip[ _-]ci\])|(?:\[ci[ _-]skip\]))', re.IGNORECASE)
           m = skip_ci.search(last_commit_msg)
           if m:
-              print("Skipping CI since the commit message has '{}'"
-                    .format(m.groups()[0]))
-              print("::set-env SKIP_CI=true")
+              print("Skipping CI since the commit message has '{}'".format(m.groups()[0]))
+              with open(os.environ['GITHUB_ENV'], 'a') as f:
+                  f.write(f"\nSKIP_CI=true")
               exit(0)
           else:
               print('Not skipping CI')
-              print("::set-env SKIP_CI=false")
+              with open(os.environ['GITHUB_ENV'], 'a') as f:
+                  f.write(f"\nSKIP_CI=false")
               exit(0)
 
     # Doesn't work when pull_request, only on push
