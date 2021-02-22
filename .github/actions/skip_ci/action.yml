@@ -9,7 +9,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - id: random-number-generator
+    - id: skip-ci
       shell: bash
       run: |
         bash --version
