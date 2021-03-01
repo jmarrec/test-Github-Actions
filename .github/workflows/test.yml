@@ -129,6 +129,7 @@ jobs:
     - name: Where is the damn action?
       shell: bash
       run: |
+        echo "Is the body populated or not?"
         echo "${{ github.event.pull_request.body }}"
         pwd
         ls
