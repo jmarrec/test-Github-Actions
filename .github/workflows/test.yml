@@ -65,9 +65,15 @@ jobs:
           cl || true
           which cl || true
 
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
+    - name: test msys installation
+      shell: bash
+      run: |
+        set -x
+        find /c/ -name "*gfortran.exe"
+        ls /c/msys64/ || true
+        ls /c/msys64/mingw64/ || true
+        ls /c/msys64/mingw64/bin/ || true
+        tree || true
 
     - name: Echo some SHAs
       shell: bash
