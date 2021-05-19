@@ -66,10 +66,11 @@ jobs:
           which cl || true
 
     - name: test msys installation
+      if: runner.os == 'Windows'
       shell: bash
       run: |
         set -x
-        find /c/ -name "*gfortran.exe"
+        find /c/msys64 -name "*gfortran.exe"
         ls /c/msys64/ || true
         ls /c/msys64/mingw64/ || true
         ls /c/msys64/mingw64/bin/ || true
