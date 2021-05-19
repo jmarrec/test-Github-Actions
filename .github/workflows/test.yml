@@ -88,13 +88,13 @@ jobs:
           test="${{ contains(toJSON(github.event.commits.*.message), '[skip-ci]') }}"
           echo "test=$test"
 
-    - name: Action Version
-      id: skip-ci
-      uses: ./.github/actions/skip_ci
+    #- name: Action Version
+      #id: skip-ci
+      #uses: ./.github/actions/skip_ci
 
-    - name: skip step composite version if SKIP_CI
-      if: ${{ !skip-ci.outputs.skip-ci }}
-      run: echo "I AM RUNNING because NOT SKIPPING CI"
+    #- name: skip step composite version if SKIP_CI
+      #if: ${{ !skip-ci.outputs.skip-ci }}
+      #run: echo "I AM RUNNING because NOT SKIPPING CI"
 
     - name: Bash Version
       run: |
