@@ -65,6 +65,12 @@ jobs:
           cl || true
           which cl || true
 
+    - name: test pdf tools
+      shell: bash
+      run: |
+        pdfinfo || true
+        pdftk || true
+
     - name: test msys installation
       if: runner.os == 'Windows'
       shell: bash
