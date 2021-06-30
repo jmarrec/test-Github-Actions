@@ -18,6 +18,7 @@ on:
 env:
   TRUE_BOOL: true
   FALSE_BOOL: false
+  IS_OFFICIAL_RELEASE: contains(github.ref, 'refs/tags')
 
 defaults:
   run:
@@ -55,6 +56,12 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: '3.8'
+
+    - name: Test Aria
+      shell: bash
+      run: |
+        aria2c --version || echo "It is not available"
+        echo "IS_OFFICIAL_RELEASE=$IS_OFFICIAL_RELEASE"
 
     - name : test python version
       shell: bash
