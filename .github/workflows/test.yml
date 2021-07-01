@@ -78,7 +78,7 @@ jobs:
         pdfinfo || true
         pdftk || true
         nproc || true
-        sysctl -n hw.ncpu' || true
+        sysctl -n hw.ncpu || true
 
     - name: test msys installation
       if: runner.os == 'Windows'
