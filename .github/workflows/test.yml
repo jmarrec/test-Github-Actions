@@ -18,7 +18,7 @@ on:
 env:
   TRUE_BOOL: true
   FALSE_BOOL: false
-  IS_OFFICIAL_RELEASE: contains(github.ref, 'refs/tags')
+  IS_OFFICIAL_RELEASE: ${{ contains(github.ref, 'refs/tags') }}
 
 defaults:
   run:
@@ -77,6 +77,7 @@ jobs:
       run: |
         pdfinfo || true
         pdftk || true
+        nproc || true
 
     - name: test msys installation
       if: runner.os == 'Windows'
