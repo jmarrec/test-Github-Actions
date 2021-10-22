@@ -57,6 +57,16 @@ jobs:
       with:
         python-version: '3.8'
 
+    - name: Test annotations
+      shell: bash
+      run: |
+        echo "::error file=main.cpp,line=1,endLine=2,title=EUI deviation too large: model_tests.rb::This file exceeds the threshold of 1.00%"
+
+    - name: Test python annotations
+      shell: python
+      run: |
+        print("::warning file=model/simulationtests/ems_scott.osm,line=1,endLine=2,title=EUI deviation is concerning: model/simulationtests/ems_scott.osm::This file exceeds the display threshold of 0.10%")
+
     - name: Test Aria
       shell: bash
       run: |
