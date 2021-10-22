@@ -60,12 +60,12 @@ jobs:
     - name: Test annotations
       shell: bash
       run: |
-        echo "::error file=main.cpp,line=1,endLine=2,title=EUI deviation too large: model_tests.rb::This file exceeds the threshold of 1.00%"
+        echo "::error file=main.cpp,line=1,endLine=2,title=EUI deviation too large: model_articulation1_bundle_git.osw::This file exceeds the threshold of 1.00%: -5.246%"
 
     - name: Test python annotations
       shell: python
       run: |
-        print("::warning file=CMakeLists.txt,line=1,endLine=2,title=EUI deviation is concerning: model/simulationtests/ems_scott.osm::This file exceeds the display threshold of 0.10%")
+        print("::warning file=CMakeLists.txt,line=1,endLine=2,title=EUI deviation is concerning: ems_scott.osm::This file exceeds the display threshold of 0.10%: -0.325%")
 
     - name: Test Aria
       shell: bash
