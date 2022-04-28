@@ -18,11 +18,12 @@ jobs:
 
 
     steps:
-    - uses: actions/setup-ruby@v1
+    - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '2.7'
+        ruby-version: 2.7
 
     - name: Test
+      shell: bash
       run: |
         gem install msgpack
         ruby -e "require 'msgpack'; File.write('repacked2.msgpack', MessagePack.pack([295138067.59645236])); MessagePack.unpack(File.read('repacked2.msgpack'))"
