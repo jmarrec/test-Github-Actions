@@ -1,0 +1,25 @@
+name: Test Mac
+
+on: push
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  build:
+    # Note: as of 2021-01-29, this only works for push, not for pull request
+    #if: "!(contains(github.event.head_commit.message, 'skip') && contains(github.event.head_commit.message, 'ci'))"
+    runs-on: macos-10.15
+
+    steps:
+
+    - name: Find libgcc
+      run: |
+        set -x
+        which gfortran-9
+        which gfortran-11
+        find /usr/ -name 'libgcc_s.1*.dylib'
+        find /opt/ -name 'libgcc_s.1*.dylib'
+
