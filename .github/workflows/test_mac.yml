@@ -20,6 +20,12 @@ jobs:
         set -x
         which gfortran-9
         which gfortran-11
-        find /usr/ -name 'libgcc_s.1*.dylib'
-        find /opt/ -name 'libgcc_s.1*.dylib'
+        find /usr/local -name 'libgcc_s.1*.dylib' || true
+        find /opt -name 'libgcc_s.1*.dylib' || true
 
+        otool -L /usr/local/lib/gcc/9/libgcc_s.1.dylib || true
+        otool -L /usr/local/lib/gcc/9/libquadmath.0.dylib || true
+        otool -L /usr/local/lib/gcc/9/libgfortran.5.dylib || true
+        otool -L /usr/lib/gcc/9/libgcc_s.1.dylib || true
+        otool -L /usr/lib/gcc/9/libquadmath.0.dylib || true
+        otool -L /usr/lib/gcc/9/libgfortran.5.dylib  || true
