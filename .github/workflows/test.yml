@@ -92,6 +92,9 @@ jobs:
     - name: test pdf tools
       shell: bash
       run: |
+        set -x
+        N=$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)
+        echo $N
         pdfinfo || true
         pdftk || true
         nproc || true
