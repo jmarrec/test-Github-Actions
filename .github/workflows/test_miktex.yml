@@ -26,4 +26,4 @@ jobs:
     - name: Curl to api2.miktex.org
       shell: bash
       run: |
-        curl -I https://api2.miktex.org/hello
+        curl -v -I https://api2.miktex.org/hello
