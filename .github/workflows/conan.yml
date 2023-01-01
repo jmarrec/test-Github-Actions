@@ -26,6 +26,9 @@ jobs:
         conan config set general.revisions_enabled=True
         conan config set general.parallel_download=8
         conan remote add --insert 0 --force nrel https://conan.openstudio.net/artifactory/api/conan/openstudio
+        conan profile new --detect default
+        conan profile update settings.compiler.version=14.0 default
+        conan profile show default
 
     - name: Install gmp/6.2.1
       run: |
