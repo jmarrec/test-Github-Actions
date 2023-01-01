@@ -29,4 +29,20 @@ jobs:
 
     - name: Install gmp/6.2.1
       run: |
+        conan download gmp/6.2.1@ --recipe
+        echo "Ori"
+        cat ~/.conan/data/gmp/6.2.1/_/_/export/conandata.yml
+
+        sed -i '' 's:gmplib.org/download:ftp.gnu.org/gnu:g' ~/.conan/data/gmp/6.2.1/_/_/export/conandata.yml
+        echo "New:"
+        cat ~/.conan/data/gmp/6.2.1/_/_/export/conandata.yml
+
         conan install gmp/6.2.1@ -b missing
+
+        conan upload gmp/6.2.1@ --all --skip-upload
+
+    - name: Archive package
+      uses: actions/upload-artifact@v3
+      with:
+          name: gmp
+          path: ~/.conan/data/gmp/6.2.1/_/_/dl/
