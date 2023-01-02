@@ -1,0 +1,35 @@
+name: Test Conan gmp
+
+on: push
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  build:
+    runs-on: macos-12
+
+    steps:
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.8.x
+
+    - name: Install conan
+      run: |
+        python --version
+        pip install conan
+        conan --version
+        echo "Enabling conan revisions and setting parallel_download"
+        conan config set general.revisions_enabled=True
+        conan config set general.parallel_download=8
+        conan remote add --insert 0 --force nrel https://conan.openstudio.net/artifactory/api/conan/openstudio
+        conan profile new --detect default
+        conan profile update settings.compiler.version=14.0 default
+        conan profile show default
+
+    - name: Install gmp/6.2.1
+      run: |
+        conan install gmp/6.2.1@ -b missing
