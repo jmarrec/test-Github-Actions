@@ -14,10 +14,8 @@ body:
     attributes:
       label: Description
       description: |
-        What is not working? What were you expecting? Are there any workarounds?
-        Remember that a missing profile or a short log will make extremely difficult
-        to investigate your case or provide any help, please be as specific as possible.
-      placeholder: Include all applicable information with details to help us reproduce your problem
+        Provide a general summary of the issue .
+      placeholder: When trying to connect a CoilCoolingDXSingleSpeed to an AirLoopHVAC, I get a crash
     validations:
       required: true
 
@@ -57,6 +55,14 @@ body:
         2.
         3.
         4.
+
+        or 
+        ```ruby
+        include OpenStudio::Model
+        m = Model.new
+        [...]
+        ```
+
     validations:
       required: true
 
@@ -69,22 +75,10 @@ body:
     validations:
       required: false
 
-  - type: dropdown
-    id: download
-    attributes:
-      label: Platform and Operating System affected
-      options:
-        - Homebrew
-        - MacPorts
-        - apt-get
-        - Built from source
-    validations:
-      required: true
-
   - type: checkboxes
-    id: operation_checkboxes
+    id: operating_system_checkboxes
     attributes:
-      label: What kinds of cats do you like?
+      label: Operating System affected
       description: You may select more than one.
       options:
         - label: macOS x86_64
@@ -105,6 +99,19 @@ body:
       placeholder: |
         lsb_release --all
         uname -i
+        openstudio --version
+    validations:
+      required: true
+
+  - type: input
+    id: os_version
+    attributes:
+      label: Version of OpenStudio
+      description: |
+        Version of OpenStudio (if using an intermediate build, include SHA):
+      value: |
+        **3.5.0**
+      placeholder: |
         openstudio --version
     validations:
       required: true
