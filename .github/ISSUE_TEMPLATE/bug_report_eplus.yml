@@ -1,0 +1,68 @@
+name: 'Bug Report EnergyPlus'
+description: 'Use this template for reporting an issue.'
+labels: 'Triage'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to submit a report.
+        **Please don't forget to update the issue title.**
+        Include all applicable information to help us reproduce
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: |
+        Description of the defect.
+        Add any useful supporting information including how the issue was found
+        conditions that trigger this defect, workarounds for users of the current version, and a clear description of how to validate that a fix is complete for this defect.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: operating_system_checkboxes
+    attributes:
+      label: Operating System affected
+      description: You may select more than one.
+      options:
+        - label: macOS x86_64
+        - label: macOS arm64
+        - label: Ubuntu 18.04
+        - label: Ubuntu 20.04
+        - label: Windows 10
+        - label: Windows 11
+        - label: Other
+
+  - type: input
+    id: energyplus_version
+    attributes:
+      label: Version of EnergyPlus
+      description: |
+        Version of EnergyPlus (if using an intermediate build, include SHA)
+      value: |
+        22.2.0
+      placeholder: |
+        energyplus --version
+    validations:
+      required: true
+
+  - type: input
+    id: context
+    attributes:
+      label: Unmethours link or helpdesk ticket number
+    validations:
+      required: false
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Add to this list or remove from it as applicable. This is a simple templated set of guidelines..
+      value: |
+        Add to this list or remove from it as applicable.  This is a simple templated set of guidelines.
+        - [ ] Defect file added (list location of defect file here)
+        - [ ] Ticket added to Pivotal for defect (development team task)
+        - [ ] Pull request created (the pull request will have additional tasks related to reviewing changes that fix this defect)
+    validations:
+      required: false

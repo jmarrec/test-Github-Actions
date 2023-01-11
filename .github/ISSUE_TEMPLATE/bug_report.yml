@@ -56,7 +56,7 @@ body:
         3.
         4.
 
-        or 
+        or
         ```ruby
         include OpenStudio::Model
         m = Model.new
@@ -108,7 +108,7 @@ body:
     attributes:
       label: Version of OpenStudio
       description: |
-        Version of OpenStudio (if using an intermediate build, include SHA):
+        Version of OpenStudio (if using an intermediate build, include SHA)
       value: |
         **3.5.0**
       placeholder: |
