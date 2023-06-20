@@ -4,7 +4,7 @@
       "owner": "loguru-parser",
       "pattern": [
         {
-          "regexp": "^\\[.*\\| (ERROR|WARNING)\\s+\\| (.*):(\\d+) \\| (.*?)\\]$",
+          "regexp": "^\\[.*\\|.*?(ERROR|WARNING).*?\\| (.*):(\\d+) \\| (.*?)\\]$",
           "severity": 1,
           "file": 2,
           "line": 3,
