@@ -1,0 +1,29 @@
+name: Loguru problem matcher
+
+on:
+  push:
+
+env:
+  LOGURU_FORMAT: "[<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{file}</cyan>:<cyan>{line}</cyan> | {name}:<cyan>{function}</cyan> - <level>{message}</level>]"
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install loguru
+      run: pip install loguru
+
+    - name: Add problem matcher
+      run: echo "::add-matcher::.github/workflows/integration_problem_matcher.json"
+
+    - name: integration-test
+      run: |
+        python loguru_test.py

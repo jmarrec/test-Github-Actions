@@ -1,0 +1,16 @@
+{
+  "problemMatcher": [
+    {
+      "owner": "loguru-parser",
+      "pattern": [
+        {
+          "regexp": "^\\[.*\\| (ERROR|WARNING)\\s+\\| (.*):(\\d+) \\| (.*?)\\]$",
+          "severity": 1,
+          "file": 2,
+          "line": 3,
+          "message": 4
+        }
+      ]
+    }
+  ]
+}
