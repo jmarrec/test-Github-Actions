@@ -4,7 +4,8 @@ on:
   push:
 
 env:
-  LOGURU_FORMAT: "[<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{file}</cyan>:<cyan>{line}</cyan> | {name}:<cyan>{function}</cyan> - <level>{message}</level>]"
+  # LOGURU_FORMAT: "[<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{file}</cyan>:<cyan>{line}</cyan> | {name}:<cyan>{function}</cyan> - <level>{message}</level>]"
+  LOGURU_FORMAT: "[{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {file}:{line} | {name}:{function} - <level>{message}</level>]"
 
 jobs:
   integration-test:
