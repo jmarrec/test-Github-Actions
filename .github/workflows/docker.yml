@@ -35,14 +35,6 @@ jobs:
           type=ref,event=branch
           type=semver,pattern={{version}}
 
-    - name: Debug
-      run: |
-        set -x
-        echo $DOCKER_METADATA_OUTPUT_VERSION
-        echo $DOCKER_METADATA_OUTPUT_TAGS
-        echo $DOCKER_METADATA_OUTPUT_LABELS
-        echo $DOCKER_METADATA_OUTPUT_JSON
-
     - name: Build and export to Docker (local)
       uses: docker/build-push-action@v4
       env:
