@@ -1,0 +1,23 @@
+name: Workflow triggers another one
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Hello
+      shell: bash
+      run: |
+        echo "Hey There"
+
+
+    - name: Trigger the other workflow
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh workflow -R ${{ github.repository }} run test_has_dispatch.yml -f tag="Passed from the other one"
