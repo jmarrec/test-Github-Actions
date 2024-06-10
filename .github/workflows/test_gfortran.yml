@@ -21,7 +21,14 @@ jobs:
     - name: test gfortran
       shell: bash
       run: |
+        set -x
         which gcc || true
         gcc --version || true
         which gfortran || true
         gfortran --version || true
+
+        gfortran-9 --version || true
+        gfortran-10 --version || true
+        gfortran-12 --version || true
+        gfortran-13 --version || true
+        gfortran-14 --version || true
