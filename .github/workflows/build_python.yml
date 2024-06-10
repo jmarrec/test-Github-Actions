@@ -145,12 +145,12 @@ jobs:
           python-arch: arm64
 
     steps:
-    - name: Set up Python ${{ env.Python_REQUIRED_VERSION }}
-      uses: actions/setup-python@v5
-      id: setup-python
-      with:
-        python-version: ${{ env.Python_REQUIRED_VERSION }}
-        architecture: ${{ matrix.python-arch }}
+#    - name: Set up Python ${{ env.Python_REQUIRED_VERSION }}
+#      uses: actions/setup-python@v5
+#      id: setup-python
+#      with:
+#        python-version: ${{ env.Python_REQUIRED_VERSION }}
+#        architecture: ${{ matrix.python-arch }}
 
     - name: Gather Test Package from Artifacts
       uses: actions/download-artifact@v4
