@@ -102,6 +102,12 @@ jobs:
         tree -I '*.pyc|*.py|__pycache__|*.xml|*.json|*.txt|*.decTest|*.toml|activate*' $RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}
         echo "::endgroup::"
 
+        if [[ "$RUNNER_OS" == "macOS" ]]; then
+          begin_group "MacOS, tree the Frameworks"
+          tree -I '*.pyc|*.py|__pycache__|*.xml|*.json|*.txt|*.decTest|*.toml|activate*' /Library/Frameworks/Python.framework/Versions/3.12
+          echo "::endgroup::"
+        fi
+
         begin_group "Build"
         cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Release \
               -DPython_REQUIRED_VERSION:STRING=${{ steps.setup-python.outputs.python-version }} \
