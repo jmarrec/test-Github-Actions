@@ -1,0 +1,183 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [ python_linking ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+    branches: [ main ]
+
+
+env:
+  Python_REQUIRED_VERSION: 3.12.2
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-13, macos-14, windows-latest]
+        include:
+        - os: ubuntu-22.04
+          arch: x86_64
+          python-arch: x64
+        - os: macos-13
+          arch: x86_64
+          python-arch: x64
+        - os: macos-14
+          arch: arm64
+          python-arch: arm64
+        - os: windows-latest
+          arch: x86_64
+          python-arch: x64
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.Python_REQUIRED_VERSION }}
+        architecture: ${{ matrix.python-arch }}
+
+    - name: Install deps
+      shell: bash
+      run: |
+        set -x
+        mkdir build
+
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          echo "Using apt to install ninja"
+          sudo apt update
+          sudo apt -y -qq install ninja-build
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          echo "Using brew to install ninja"
+          brew install ninja
+          echo "Setting MACOSX_DEPLOYMENT_TARGET to 13.0"
+          echo "MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
+          echo "Adding SDKROOT to GITHUB_ENV"
+          echo "SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> $GITHUB_ENV
+
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+          choco install ninja
+          # C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise
+          MSVC_DIR=$(vswhere -products '*' -requires Microsoft.Component.MSBuild -property installationPath -latest)
+          echo "Latest is: $MSVC_DIR"
+          echo "MSVC_DIR=$MSVC_DIR" >> $GITHUB_ENV
+          # add folder containing vcvarsall.bat
+          echo "$MSVC_DIR\VC\Auxiliary\Build" >> $GITHUB_PATH
+        fi;
+
+    - name: Configure CMake & build (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      working-directory: ./build
+      # Note the current convention is to use the -S and -B options here to specify source
+      # and build directories, but this is only available with CMake 3.13 and higher.
+      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
+      # NOTE: If you re-enable 'Download the OpenStudio installer' step, then pass `openstudio_DIR=$openstudio_DIR cmake [etc]`
+      run: |
+        echo "Using vcvarsall to initialize the development environment"
+        call vcvarsall.bat x64
+        dir
+        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Release ^
+              -DPython_REQUIRED_VERSION:STRING=${{ steps.setup-python.outputs.python-version }} ^
+              -DPython_ROOT_DIR:PATH=$RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }} ^
+              ..
+        ninja package
+
+    - name: Configure CMake & build (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      working-directory: ./build
+      run: |
+        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Release \
+              -DPython_REQUIRED_VERSION:STRING=${{ steps.setup-python.outputs.python-version }} \
+              -DPython_ROOT_DIR:PATH=$RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}/ \
+              ..
+        ninja package
+
+    - name: Archive TGZ artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: TestPython-${{ matrix.os }}
+        path: build/TestPython-0.0.1*.tar.gz
+
+
+  test_package:
+    name: Test Built Package
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-13, macos-14, windows-latest]
+        include:
+        - os: ubuntu-22.04
+          arch: x86_64
+          python-arch: x64
+        - os: macos-13
+          arch: x86_64
+          python-arch: x64
+        - os: macos-14
+          arch: arm64
+          python-arch: arm64
+        - os: windows-latest
+          arch: x86_64
+          python-arch: x64
+
+    steps:
+    - name: Set up Python ${{ env.Python_REQUIRED_VERSION }}
+      uses: actions/setup-python@v5
+      id: setup-python
+      with:
+        python-version: ${{ env.Python_REQUIRED_VERSION }}
+        architecture: ${{ matrix.python-arch }}
+
+    - name: Gather Test Package from Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: TestPython-${{ matrix.os }}
+        path: ./test
+
+
+    - name: Display structure of downloaded files
+      working-directory: ./test
+      run: |
+        ls -R
+
+    - name: Extract the tar.gz
+      working-directory: ./test
+      shell: bash
+      run: |
+        for f in *.tar.gz; do
+          tar -xzvf "$f";
+        done;
+        ls -R
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          exe=$(find . -name test.exe -print -quit)
+        else
+          exe=$(find . -name test -print -quit)
+        fi
+        exe_dir=$(dirname $exe)
+        echo "exe=$exe"
+        echo "exe_dir=$exe_dir"
+        echo "EXE_DIR=$exe_dir" >> $GITHUB_ENV
+
+    - name: Run the executable (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      working-directory: ./test/${{ env.EXE_DIR }}
+      run: |
+        test.exe
+
+    - name: Run the executable (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      working-directory: ./test/${{ env.EXE_DIR }}
+      run: |
+        ./test

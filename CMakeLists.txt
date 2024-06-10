@@ -1,163 +1,68 @@
-cmake_minimum_required(VERSION 3.10.2)
-cmake_policy(SET CMP0048 NEW)
+cmake_minimum_required(VERSION 3.17)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# Do not enable compiler specific extensions, for eg on GCC use -std=c++1z (=c++17) and not -std=gnu++17
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Use ccache is available, has to be before "project()"
-find_program(CCACHE_PROGRAM ccache)
+# Use ccache if available, has to be before "project()"
+find_program(CCACHE_PROGRAM NAMES ccache sccache)
 if(CCACHE_PROGRAM)
-  # Support Unix Makefiles and Ninja
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+  # Support: Unix Makefiles and Ninja only
+  message(STATUS "Using CCACHE")
+  # RULE_LAUNCH_COMPILE is an internal variable and makes RC compilation fail on windows, hence why we use the C/CXX COMPILER_LAUNCHER instead
+  message(STATUS "${CCACHE_PROGRAM} found and enabled")
+  set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM} CACHE FILEPATH "CXX compiler cache used")
+  set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM} CACHE FILEPATH "C compiler cache used")
 endif()
 
-project(testNinja VERSION 1.0.0)
+cmake_policy(SET CMP0048 NEW) # handling project_version_* variables
 
-# The PROJECT_SOURCE_DIR here is OpenStudioApplication/, which we will use instead of using CMAKE_SOURCE_DIR
-set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-# We will use BINARY_DIR instead of CMAKE_BINARY_DIR
-set(PROJECT_BINARY_DIR "${CMAKE_BINARY_DIR}")
+project(TestPython VERSION 0.0.1)
 
-# Set a default build type if none was specified
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to 'Release' as none was specified.")
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-    "MinSizeRel" "RelWithDebInfo")
+if(UNIX AND NOT APPLE)
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif()
 
-include(ExternalProject)
-include(CPackComponent)
-include(CheckCXXCompilerFlag)
-
-if(POLICY CMP0020)
-  cmake_policy(SET CMP0020 NEW)
-endif()
-if(POLICY CMP0022)
-  cmake_policy(SET CMP0022 NEW)
-endif()
-if(POLICY CMP0042)
-  cmake_policy(SET CMP0042 NEW)
-endif()
-if(POLICY CMP0054)
-  cmake_policy(SET CMP0054 NEW)
-endif()
-if(POLICY CMP0077)
-  cmake_policy(SET CMP0077 NEW)
-endif()
-
-###############################################################################
-#                                  N I N J A                                  #
-###############################################################################
-# Ninja support: has to be atop for it to take effect before anything else is done
-# Add Color Output if Using Ninja
-macro(AddCXXFlagIfSupported flag test)
-  CHECK_CXX_COMPILER_FLAG(${flag} ${test})
-  if(${${test}})
-    message("adding ${flag}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
-  endif()
-endmacro()
-
-if("Ninja" STREQUAL ${CMAKE_GENERATOR})
-  # Clang
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    AddCXXFlagIfSupported(-fcolor-diagnostics COMPILER_SUPPORTS_fcolor-diagnostics)
-  endif()
-
-  # g++
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    # For some reason it doesn't say its supported, but it works...
-    # AddCXXFlagIfSupported(-fdiagnostics-color COMPILER_SUPPORTS_fdiagnostics-color)
-    message(STATUS "Ninja: Forcing -fdiagnostics-color=always")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
-  endif()
-endif()
-
-# Xcode/Ninja generators undefined MAKE
-if(CMAKE_GENERATOR MATCHES "Make")
-  set(MAKE "$(MAKE)")
+set(Python_REQUIRED_VERSION "" CACHE STRING "The specific Python version you want to link to (Optional)")
+set(Python_ROOT_DIR "" CACHE PATH "The path to the root installation of your python version, if you want to explicitly set it (Optional)")
+mark_as_advanced(Python_REQUIRED_VERSION)
+mark_as_advanced(Python_ROOT_DIR)
+if(Python_REQUIRED_VERSION)
+  find_package(Python ${Python_REQUIRED_VERSION} EXACT COMPONENTS Interpreter Development REQUIRED)
 else()
-  set(MAKE make)
+  find_package(Python 3.12 COMPONENTS Interpreter Development REQUIRED)
 endif()
 
-###############################################################################
-#                         C M A K E    C O N T R O L                          #
-###############################################################################
 
-# High level project configuration
-# Do we actually want everything to go to CMAKE_BINARY_DIR/Products,
-# so that when you build OpenStudioApplication you get both OpenStudio (core) and Application in the same place?
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Products")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Products")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Products")
+include_directories("${Python_INCLUDE_DIRS}")
 
-set(LIBRARY_SEARCH_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Release" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Debug")
+get_filename_component(RESOLVED_PYTHON_LIBRARY "${Python_LIBRARIES}" REALPATH)
+message("Python_LIBRARIES=${Python_LIBRARIES}")
+message("RESOLVED_PYTHON_LIBRARY=${RESOLVED_PYTHON_LIBRARY}")
 
-###############################################################################
-#          C O M P I L E R    A N D    S Y S T E M    O P T I O N S           #
-###############################################################################
+add_executable(test main.cpp)
+target_link_libraries(test PUBLIC ${Python_LIBRARIES})
 
-# Compiler and system specific options
-if(UNIX)
-
-  #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fPIC -fno-strict-aliasing")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fno-strict-aliasing")
-
-  # all warnings
-  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -fno-strict-aliasing -Winvalid-pch -Wnon-virtual-dtor")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fPIC -fno-strict-aliasing -Winvalid-pch")
-  # Treat all warnings as errors
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-  if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual -ftemplate-depth=1024")
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
-    # DLM: had to add this due to issues with boost optional and gcc, may be resolved if we move to std::optional
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
-  endif()
-
-  # Note: CMAKE_CXX_STANDARD set to 17 should already take care of adding -std=c++17 or equivalent
-  if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-  endif()
-endif()
-
-# Add binary dir to include path
-include_directories("${PROJECT_BINARY_DIR}")
-# Project binary directory
-#include_directories("${CMAKE_BINARY_DIR}/src/")
-
-
-#######################################################################
-#                 F I N D    R I G H T    P Y T H O N                 #
-#######################################################################
-
-find_package(Python COMPONENTS Interpreter Development REQUIRED)
-message("Python_VERSION=${Python_VERSION}, Python_EXECUTABLE=${Python_EXECUTABLE}, Python_INCLUDE_DIRS=${Python_INCLUDE_DIRS}")
-
-###############################################################################
-#                              E X E C U T A B L E                            #
-###############################################################################
-
-set(target_name hello)
-add_executable(${target_name}
-  # WIN32
-  MACOSX_BUNDLE
-  main.cpp
+install(TARGETS test
+  RUNTIME DESTINATION ./
+  LIBRARY DESTINATION ./
+  ARCHIVE DESTINATION .
 )
 
-if(WIN32)
-  message("THIS IS WIN32")
-else()
-  message("THIS ISNT WIN32")
+install(
+  CODE "execute_process(
+    COMMAND ${CMAKE_COMMAND}
+    -DRESOLVED_PYTHON_LIB=${RESOLVED_PYTHON_LIBRARY}
+    -DEXECUTABLE_PATH=\${CMAKE_INSTALL_PREFIX}/test${CMAKE_EXECUTABLE_SUFFIX}
+    -P ${PROJECT_SOURCE_DIR}/cmake/PythonGetLibAndLinkUp.cmake
+  )")
+
+if(APPLE)
+  install(
+    CODE "execute_process(
+      COMMAND ${CMAKE_COMMAND}
+      -DRESOLVED_PYTHON_LIB=${RESOLVED_PYTHON_LIBRARY}
+      -DEPLUS_DYNAMIC_LIB_NAME=libenergyplusapi.${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMAKE_VERSION_PATCH}.dylib
+      -DEXECUTABLE_PATH=\${CMAKE_INSTALL_PREFIX}/energyplus${CMAKE_EXECUTABLE_SUFFIX}
+      -P ${PROJECT_SOURCE_DIR}/cmake/PythonFixUpOnMac.cmake
+    )")
 endif()
 
-if(MSVC)
-  message("THIS IS MSVC")
-else()
-  message("THIS ISNT MSVC")
-endif()
+set(CPACK_GENERATOR "TGZ")
+include(CPack)
