@@ -204,6 +204,7 @@ jobs:
     - name: debug
       if: ${{ always() }}
       shell: bash
+      working-directory: ./test/${{ env.EXE_DIR }}
       run: |
         set -x
         if [[ "$RUNNER_OS" == "Linux" ]]; then
