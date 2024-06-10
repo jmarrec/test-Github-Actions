@@ -95,6 +95,9 @@ jobs:
       shell: bash
       working-directory: ./build
       run: |
+        ls $RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}
+        tree $RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}
+
         cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Release \
               -DPython_REQUIRED_VERSION:STRING=${{ steps.setup-python.outputs.python-version }} \
               -DPython_ROOT_DIR:PATH=$RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}/ \
@@ -180,6 +183,7 @@ jobs:
       shell: bash
       working-directory: ./test/${{ env.EXE_DIR }}
       run: |
+        set -x
         ./test
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt update
@@ -193,4 +197,3 @@ jobs:
           file test || true
           file Python || true
         fi
-        readelf
