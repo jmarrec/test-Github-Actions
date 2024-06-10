@@ -15,7 +15,9 @@ cmake_policy(SET CMP0048 NEW) # handling project_version_* variables
 
 project(TestPython VERSION 0.0.1)
 
-if(UNIX AND NOT APPLE)
+if(APPLE)
+  set(CMAKE_INSTALL_RPATH "@loader_path")
+elseif(UNIX)
   set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif()
 
@@ -53,15 +55,15 @@ install(
     -P ${PROJECT_SOURCE_DIR}/cmake/PythonGetLibAndLinkUp.cmake
   )")
 
-if(APPLE)
-  install(
-    CODE "execute_process(
-      COMMAND ${CMAKE_COMMAND}
-      -DRESOLVED_PYTHON_LIB=${RESOLVED_PYTHON_LIBRARY}
-      -DEXECUTABLE_PATH=\${CMAKE_INSTALL_PREFIX}/test${CMAKE_EXECUTABLE_SUFFIX}
-      -P ${PROJECT_SOURCE_DIR}/cmake/PythonFixUpOnMac.cmake
-    )")
-endif()
+# if(APPLE)
+#   install(
+#     CODE "execute_process(
+#       COMMAND ${CMAKE_COMMAND}
+#       -DRESOLVED_PYTHON_LIB=${RESOLVED_PYTHON_LIBRARY}
+#       -DEXECUTABLE_PATH=\${CMAKE_INSTALL_PREFIX}/test${CMAKE_EXECUTABLE_SUFFIX}
+#       -P ${PROJECT_SOURCE_DIR}/cmake/PythonFixUpOnMac.cmake
+#     )")
+# endif()
 
 set(CPACK_GENERATOR "TGZ")
 include(CPack)

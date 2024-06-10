@@ -2,7 +2,7 @@ name: C++ CI
 
 on:
   push:
-    branches: [ python_linking ]
+    branches: [ python_workaround ]
     # Sequence of patterns matched against refs/tags
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
@@ -20,7 +20,7 @@ jobs:
       # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-13, macos-14, windows-latest]
+        os: [ubuntu-22.04, macos-13, macos-14]
         include:
         - os: ubuntu-22.04
           arch: x86_64
@@ -31,9 +31,6 @@ jobs:
         - os: macos-14
           arch: arm64
           python-arch: arm64
-        - os: windows-latest
-          arch: x86_64
-          python-arch: x64
 
     steps:
     - uses: actions/checkout@v4
@@ -135,7 +132,7 @@ jobs:
       # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-13, macos-14, windows-latest]
+        os: [ubuntu-22.04, macos-13, macos-14]
         include:
         - os: ubuntu-22.04
           arch: x86_64
@@ -146,9 +143,6 @@ jobs:
         - os: macos-14
           arch: arm64
           python-arch: arm64
-        - os: windows-latest
-          arch: x86_64
-          python-arch: x64
 
     steps:
     - name: Set up Python ${{ env.Python_REQUIRED_VERSION }}
