@@ -56,7 +56,7 @@ jobs:
           sudo apt -y -qq install ninja-build
         elif [ "$RUNNER_OS" == "macOS" ]; then
           echo "Using brew to install ninja"
-          brew install ninja
+          brew install ninja tree
           echo "Setting MACOSX_DEPLOYMENT_TARGET to 13.0"
           echo "MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
           echo "Adding SDKROOT to GITHUB_ENV"
@@ -96,12 +96,12 @@ jobs:
       working-directory: ./build
       run: |
         ls $RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}
-        tree $RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}
-
+        tree -I '*.pyc|*.py|__pycache__|*.xml|*.json|*.txt|*.decTest|*.toml|activate*' $RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}
         cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Release \
               -DPython_REQUIRED_VERSION:STRING=${{ steps.setup-python.outputs.python-version }} \
               -DPython_ROOT_DIR:PATH=$RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}/ \
               ..
+        grep -R Python CMakeCache.txt
         ninja package
 
     - name: Archive TGZ artifacts
