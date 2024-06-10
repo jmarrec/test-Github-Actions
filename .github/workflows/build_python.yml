@@ -95,14 +95,24 @@ jobs:
       shell: bash
       working-directory: ./build
       run: |
+        begin_group() { echo -e "::group::\033[93m$1\033[0m"; }
+
+        begin_group "Tree the python toolcache"
         ls $RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}
         tree -I '*.pyc|*.py|__pycache__|*.xml|*.json|*.txt|*.decTest|*.toml|activate*' $RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}
+        echo "::endgroup::"
+
+        begin_group "Build"
         cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Release \
               -DPython_REQUIRED_VERSION:STRING=${{ steps.setup-python.outputs.python-version }} \
               -DPython_ROOT_DIR:PATH=$RUNNER_TOOL_CACHE/Python/${{ steps.setup-python.outputs.python-version }}/${{ matrix.python-arch }}/ \
               ..
-        grep -R Python CMakeCache.txt
         ninja package
+        echo "::endgroup::"
+
+        begin_group "CMakeCache"
+        grep -R Python CMakeCache.txt
+        echo "::endgroup::"
 
     - name: Archive TGZ artifacts
       uses: actions/upload-artifact@v4
@@ -183,15 +193,20 @@ jobs:
       shell: bash
       working-directory: ./test/${{ env.EXE_DIR }}
       run: |
-        set -x
         ./test
+
+    - name: debug
+      if: ${{ always() }}
+      shell: bash
+      run: |
+        set -x
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt update
           sudo apt -y -qq install binutils
           ldd test || true
           readelf -d test || true
           file test  || true
-        else
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
           otool -L test || true
           otool -l test | grep -A2 LC_RPATH  || true
           file test || true
