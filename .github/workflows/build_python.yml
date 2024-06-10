@@ -144,7 +144,6 @@ jobs:
         name: TestPython-${{ matrix.os }}
         path: ./test
 
-
     - name: Display structure of downloaded files
       working-directory: ./test
       run: |
@@ -181,3 +180,16 @@ jobs:
       working-directory: ./test/${{ env.EXE_DIR }}
       run: |
         ./test
+        if [[ "$RUNNER_OS" == "Linux"]]; then
+          sudo apt update
+          sudo apt -y -qq install binutils
+          ldd test || true
+          readelf -d test || true
+          file test  || true
+        else
+          otool -L test || true
+          otool -l test | grep -A2 LC_RPATH  || true
+          file test || true
+          file Python || true
+        fi
+        readelf
