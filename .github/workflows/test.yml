@@ -2,12 +2,12 @@ name: Test bed
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ main, develop ]
     # Sequence of patterns matched against refs/tags
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
   pull_request:
-    branches: [ master, develop ]
+    branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       actions_run_id:
@@ -34,12 +34,12 @@ jobs:
       # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, windows-latest, macos-latest]
+        os: [ubuntu-22.04, ubuntu-24.04, windows-latest, macos-latest]
         include:
           - os: windows-latest
             vs-generator: Win32
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: test conditional based on env (TRUE_BOOL)
       if: env.TRUE_BOOL == 'true'
@@ -53,9 +53,9 @@ jobs:
       run: |
         echo "It runs!"
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
-        python-version: '3.8'
+        python-version: '3.12'
 
     - name: Test Path and co
       shell: bash
@@ -309,7 +309,7 @@ jobs:
 
 
     - name: Upload md5sum artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
           path: ${{ matrix.os }}.md5sum
 
@@ -322,7 +322,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
 
     - name: Display structure of downloaded files
       shell: bash

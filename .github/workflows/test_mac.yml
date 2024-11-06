@@ -11,24 +11,31 @@ jobs:
   build:
     # Note: as of 2021-01-29, this only works for push, not for pull request
     #if: "!(contains(github.event.head_commit.message, 'skip') && contains(github.event.head_commit.message, 'ci'))"
-    runs-on: macos-10.15
+    runs-on: macos-13
 
     steps:
 
     - name: Find libgcc
       run: |
         set -x
-        which gfortran-9
-        which gfortran-11
+        brew --prefix gcc@14 || true
+
+        which gfortran-12 || true
+        which gfortran-13 || true
+        which gfortran-14 || true
         find /usr/local -name 'libgcc_s.1*.dylib' || true
         find /opt -name 'libgcc_s.1*.dylib' || true
+
+        ls /usr/lib/gcc/
+        ls /usr/local/lib/gcc/
+        ls /usr/local/Cellar/
 
         otool -L /usr/local/lib/gcc/9/libgcc_s.1.dylib || true
         otool -L /usr/local/lib/gcc/9/libquadmath.0.dylib || true
         otool -L /usr/local/lib/gcc/9/libgfortran.5.dylib || true
-        otool -L /usr/local/Cellar/gcc@11/11.3.0/lib/gcc/11/libgcc_s.1.dylib  || true
-        otool -L /usr/local/Cellar/gcc@11/11.3.0/lib/gcc/11/libquadmath.0.dylib || true
-        otool -L /usr/local/Cellar/gcc@11/11.3.0/lib/gcc/11/libgfortran.5.dylib  || true
+        otool -L /usr/local/Cellar/gcc@14/14.2.0/lib/gcc/14/libgcc_s.1.dylib  || true
+        otool -L /usr/local/Cellar/gcc@14/14.2.0/lib/gcc/14/libquadmath.0.dylib || true
+        otool -L /usr/local/Cellar/gcc@14/14.2.0/lib/gcc/14/libgfortran.5.dylib  || true
         otool -L /usr/lib/gcc/9/libgcc_s.1.dylib || true
         otool -L /usr/lib/gcc/9/libquadmath.0.dylib || true
         otool -L /usr/lib/gcc/9/libgfortran.5.dylib  || true
