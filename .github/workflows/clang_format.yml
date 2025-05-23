@@ -13,6 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install clang-format-19
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-19
+          clang-format-19 --version
+
       - name: Run clang-format against C++ files touched by the PR
         if: ${{ github.event_name == 'pull_request' }}
         shell: bash
