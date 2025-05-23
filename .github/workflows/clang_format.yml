@@ -59,7 +59,8 @@ jobs:
             else
               echo "clang-format auto corrected files:"
               git diff --name-only
-              echo -e "\nPlease correct these files."
+              echo -e "\nPlease correct these files by running clang-format-19 locally, or download the artifact "
+              echo 'and run `patch -p1 < /path/to/clang_format.patch`'
               exit 1
             fi
 
@@ -81,7 +82,6 @@ jobs:
             else
               echo "clang-format auto corrected files:"
               git diff --name-only
-              echo -e "\nPlease correct these files."
               exit 1
             fi
 
