@@ -1,0 +1,103 @@
+name: Code Integrity
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code_integrity_checks:
+    name: Static Code Analysis
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run clang-format against C++ files touched by the PR
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+            echo "GITHUB_REF=$GITHUB_REF GITHUB_BASE_REF=$GITHUB_BASE_REF GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
+            git fetch --all
+            clang-format --version
+            PR_BRANCH_NAME=remotes/origin/$GITHUB_HEAD_REF
+            TARGET_BRANCH_NAME=remotes/origin/$GITHUB_BASE_REF
+            # first find if any files changed
+            changed_files=$(git diff "$PR_BRANCH_NAME" "$TARGET_BRANCH_NAME" --name-only src/ tst/ | /bin/grep -E '\.(cpp|cc|c|hpp|hh|h)$')
+            file_count=$(echo "$changed_files" | wc -l)
+            if [ $file_count -eq 0 ]:then
+              echo "No files of type (cpp, c, hpp, h) changed. Skipping clang-formatting"
+              exit 0
+            else
+              echo "Found $file_count C/C++ changed files"
+            fi
+
+            # Using \0 as a terminator in case we'd ever have files with spaces
+            git diff -z "$PR_BRANCH_NAME" "$TARGET_BRANCH_NAME" --name-only src/ tst/ \
+              | /bin/grep -z -E '\.(cpp|cc|c|hpp|hh|h)$' \
+              | xargs -0 -P "$(nproc)" -n 1 clang-format-18 -style=file -i -fallback-style=none --verbose
+
+            # clang-format will auto correct files so prepare the diff and use this as artifact
+            git diff > clang_format.patch
+
+            # Delete if nothhing otherwise exit 1 to indicate a failed job
+            if [ ! -s clang_format.patch ]; then
+              rm clang_format.patch
+              exit 0
+            else
+              echo "clang-format auto corrected files:"
+              git diff --name-only
+              echo -e "\nPlease correct these files."
+              exit 1
+            fi
+
+
+            ./ci/clang-format.sh remotes/origin/$GITHUB_HEAD_REF remotes/origin/$GITHUB_BASE_REF
+
+      - name: Run clang-format for entire codebase
+        if: ${{ github.event_name == 'push' }}
+        shell: bash
+        run: |
+            clang-format --version
+            find src tst \( -name "*.hpp" -o -name "*.h" -o -name "*.hh" -o -name "*.cc" -o -name "*.cpp" -o -name "*.c" \) \
+              -print0 | xargs -0 -P "$(nproc)" -n 1 clang-format-18 -style=file -i -fallback-style=none --verbose
+
+            # clang-format will auto correct files so prepare the diff and use this as artifact
+            git diff > clang_format.patch
+
+            # Delete if nothing otherwise exit 1 to indicate a failed job
+            if [ ! -s clang_format.patch ]; then
+              rm clang_format.patch
+              exit 0
+            else
+              echo "clang-format auto corrected files:"
+              git diff --name-only
+              echo -e "\nPlease correct these files."
+              exit 1
+            fi
+
+      - name: Upload clang-format patch as artifact
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+            name: EnergyPlus-${{ github.sha }}-clang_format.patch
+            path: clang_format.patch
+
+              # - name: Commit Auto-corrections
+              #   shell: bash
+              #   if: ${{ always() && github.event_name == 'push' }}
+              #   run: |
+              #     git add -u
+              #     if [[ $(git diff --cached --exit-code) ]]; then
+              #       echo "Commiting Lint Autocorrects"
+              #       git config --global user.email 'github-lint-actions[bot]@users.noreply.github.com'
+              #       git config --global user.name 'github-lint-actions[bot]'
+              #       git commit -m "[chore] Commit clang-format autocorrects"
+              #       echo '' >> .git-blame-ignore-revs
+              #       git log -n1 --pretty='format:# %C(auto)%s [%an, %as]%n%H%n' >> .git-blame-ignore-revs
+              #       git add .git-blame-ignore-revs
+              #       git commit -m "Add clang-format autocorrects to git-blame-ignore-revs"
+              #       git push
+              #     else
+              #       echo "No Autocorrect needed"
+              #     fi
