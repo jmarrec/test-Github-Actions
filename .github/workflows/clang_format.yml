@@ -21,7 +21,7 @@ jobs:
           # sudo apt-get update && apt-get install -y wget gnupg lsb-release software-properties-common
           # wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/llvm-archive-keyring.gpg
           # echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
-          sudo apt-get update
+          sudo apt-get update -q
           sudo apt-get install -y clang-format-19
           clang-format-19 --version
 
@@ -34,7 +34,7 @@ jobs:
 
             begin_group "Find changed files"
             echo "GITHUB_REF=$GITHUB_REF GITHUB_BASE_REF=$GITHUB_BASE_REF GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
-            git fetch --all
+            git fetch --all --quiet
             PR_BRANCH_NAME=remotes/origin/$GITHUB_HEAD_REF
             TARGET_BRANCH_NAME=remotes/origin/$GITHUB_BASE_REF
             # first find if any files changed
@@ -44,7 +44,9 @@ jobs:
               echo "No files of type (cpp, c, hpp, h) changed. Skipping clang-formatting"
               exit 0
             else
-              echo "Found $file_count C/C++ changed files"
+              begin_group "Found $file_count C/C++ changed files"
+              echo "$changed_files"
+              echo "::endgroup::"
             fi
             echo "::endgroup::"
 
