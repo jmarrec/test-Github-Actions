@@ -95,21 +95,21 @@ jobs:
             name: EnergyPlus-${{ github.sha }}-clang_format.patch
             path: clang_format.patch
 
-              # - name: Commit Auto-corrections
-              #   shell: bash
-              #   if: ${{ always() && github.event_name == 'push' }}
-              #   run: |
-              #     git add -u
-              #     if [[ $(git diff --cached --exit-code) ]]; then
-              #       echo "Commiting Lint Autocorrects"
-              #       git config --global user.email 'github-lint-actions[bot]@users.noreply.github.com'
-              #       git config --global user.name 'github-lint-actions[bot]'
-              #       git commit -m "[chore] Commit clang-format autocorrects"
-              #       echo '' >> .git-blame-ignore-revs
-              #       git log -n1 --pretty='format:# %C(auto)%s [%an, %as]%n%H%n' >> .git-blame-ignore-revs
-              #       git add .git-blame-ignore-revs
-              #       git commit -m "Add clang-format autocorrects to git-blame-ignore-revs"
-              #       git push
-              #     else
-              #       echo "No Autocorrect needed"
-              #     fi
+      - name: Commit Auto-corrections
+        shell: bash
+        if: ${{ always() && github.event_name == 'push' }}
+        run: |
+          git add -u
+          if [[ $(git diff --cached --exit-code) ]]; then
+            echo "Commiting Lint Autocorrects"
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            git config --global user.name 'github-lint-actions[bot]'
+            git commit -m "[chore] Commit clang-format autocorrects"
+            echo '' >> .git-blame-ignore-revs
+            git log -n1 --pretty='format:# %C(auto)%s [%an, %as]%n%H%n' >> .git-blame-ignore-revs
+            git add .git-blame-ignore-revs
+            git commit -m "Add clang-format autocorrects to git-blame-ignore-revs"
+            git push
+          else
+            echo "No Autocorrect needed"
+          fi
