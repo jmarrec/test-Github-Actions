@@ -21,70 +21,102 @@ jobs:
           # sudo apt-get update && apt-get install -y wget gnupg lsb-release software-properties-common
           # wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/llvm-archive-keyring.gpg
           # echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
-          sudo apt-get update
-          sudo apt-get install -y clang-format-19
+          sudo apt-get update -qq
+          sudo apt-get install -y -q clang-format-19
           clang-format-19 --version
 
       - name: Run clang-format against C++ files touched by the PR
         if: ${{ github.event_name == 'pull_request' }}
         shell: bash
         run: |
+            clang-format-19 --version
+            begin_group() { echo -e "::group::\033[93m$1\033[0m"; }
+
+            begin_group "Find changed files"
             echo "GITHUB_REF=$GITHUB_REF GITHUB_BASE_REF=$GITHUB_BASE_REF GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
-            git fetch --all
-            clang-format --version
+            git fetch --all --quiet
             PR_BRANCH_NAME=remotes/origin/$GITHUB_HEAD_REF
             TARGET_BRANCH_NAME=remotes/origin/$GITHUB_BASE_REF
             # first find if any files changed
             changed_files=$(git diff "$PR_BRANCH_NAME" "$TARGET_BRANCH_NAME" --name-only src/ tst/ | /bin/grep -E '\.(cpp|cc|c|hpp|hh|h)$')
             file_count=$(echo "$changed_files" | wc -l)
-            if [ $file_count -eq 0 ]:then
+            if [ $file_count -eq 0 ]; then
               echo "No files of type (cpp, c, hpp, h) changed. Skipping clang-formatting"
               exit 0
             else
-              echo "Found $file_count C/C++ changed files"
+              begin_group "Found $file_count C/C++ changed files"
+              echo "$changed_files"
+              echo "::endgroup::"
             fi
+            echo "::endgroup::"
 
+            begin_group "Run clang-format for changes files"
             # Using \0 as a terminator in case we'd ever have files with spaces
             git diff -z "$PR_BRANCH_NAME" "$TARGET_BRANCH_NAME" --name-only src/ tst/ \
               | /bin/grep -z -E '\.(cpp|cc|c|hpp|hh|h)$' \
-              | xargs -0 -P "$(nproc)" -n 1 clang-format-18 -style=file -i -fallback-style=none --verbose
+              | xargs -0 -P "$(nproc)" -n 1 clang-format-19 -style=file -i -fallback-style=none --verbose
 
             # clang-format will auto correct files so prepare the diff and use this as artifact
             git diff > clang_format.patch
+            echo "::endgroup::"
 
             # Delete if nothhing otherwise exit 1 to indicate a failed job
             if [ ! -s clang_format.patch ]; then
               rm clang_format.patch
               exit 0
             else
-              echo "clang-format auto corrected files:"
+              incorrect_count=$(git diff --name-only | wc -l)
+              incorrect_percent=$(awk "BEGIN { printf \"%.2f\", ($incorrect_count/$file_count)*100 }")
+              begin_group "clang-format auto corrected $incorrect_count files:"
               git diff --name-only
-              echo -e "\nPlease correct these files."
+              echo "::endgroup::"
+              echo "::error title=Clang Format Check Failed::Formatting issues detected in $incorrect_count files"
+              echo -e "\nPlease correct these files by running clang-format-19 locally, or download the artifact "
+              echo 'and run `patch -p1 < /path/to/clang_format.patch`'
+              {
+                echo "| Item                                  | Value     |"
+                echo "|---------------------------------------|-----------|"
+                echo "| Number of Files Analyzed              | $file_count |"
+                echo "| Number of Files Incorrectly Formatted | $incorrect_count |"
+                echo "| % Files Incorrectly Formatted         | ${incorrect_percent}% |"
+              } >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
-
-
-            ./ci/clang-format.sh remotes/origin/$GITHUB_HEAD_REF remotes/origin/$GITHUB_BASE_REF
 
       - name: Run clang-format for entire codebase
         if: ${{ github.event_name == 'push' }}
         shell: bash
         run: |
-            clang-format --version
+            clang-format-19 --version
+            begin_group() { echo -e "::group::\033[93m$1\033[0m"; }
+
+            begin_group "Run clang-format"
             find src tst \( -name "*.hpp" -o -name "*.h" -o -name "*.hh" -o -name "*.cc" -o -name "*.cpp" -o -name "*.c" \) \
-              -print0 | xargs -0 -P "$(nproc)" -n 1 clang-format-18 -style=file -i -fallback-style=none --verbose
+              -print0 | xargs -0 -P "$(nproc)" -n 1 clang-format-19 -style=file -i -fallback-style=none --verbose
 
             # clang-format will auto correct files so prepare the diff and use this as artifact
             git diff > clang_format.patch
+            echo "::endgroup::"
 
             # Delete if nothing otherwise exit 1 to indicate a failed job
             if [ ! -s clang_format.patch ]; then
               rm clang_format.patch
               exit 0
             else
-              echo "clang-format auto corrected files:"
+              file_count=$(find src tst \( -name "*.hpp" -o -name "*.h" -o -name "*.hh" -o -name "*.cc" -o -name "*.cpp" -o -name "*.c" \) | wc -l)
+              incorrect_count=$(git diff --name-only | wc -l)
+              incorrect_percent=$(awk "BEGIN { printf \"%.2f\", ($incorrect_count/$file_count)*100 }")
+              begin_group "clang-format auto corrected $incorrect_count files:"
               git diff --name-only
-              echo -e "\nPlease correct these files."
+              echo "::endgroup::"
+              echo "::error title=Clang Format Check Failed::Formatting issues detected in $incorrect_count files"
+              {
+                echo "| Item                                  | Value     |"
+                echo "|---------------------------------------|-----------|"
+                echo "| Number of Files Analyzed              | $file_count |"
+                echo "| Number of Files Incorrectly Formatted | $incorrect_count |"
+                echo "| % Files Incorrectly Formatted         | ${incorrect_percent}% |"
+              } >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
 
