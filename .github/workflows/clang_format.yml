@@ -16,12 +16,11 @@ jobs:
       - name: Install clang-format-19
         shell: bash
         run: |
-          sudo apt-get update
-          # 14s  to install from apt, getting  19.1.1
-          # sudo apt-get install -y clang-format-19
-          # sudo apt-get install -y wget gnupg lsb-release software-properties-common
-          wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/llvm-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          # 14s to install from apt, getting  19.1.1
+          # Getting it from LLVM takes 1min13s
+          # sudo apt-get update && apt-get install -y wget gnupg lsb-release software-properties-common
+          # wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/llvm-archive-keyring.gpg
+          # echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
           sudo apt-get update
           sudo apt-get install -y clang-format-19
           clang-format-19 --version
