@@ -65,12 +65,21 @@ jobs:
               rm clang_format.patch
               exit 0
             else
-              begin_group "clang-format auto corrected $(git diff --name-only | wc -l) files:"
+              incorrect_count=$(git diff --name-only | wc -l)
+              incorrect_percent=$(awk "BEGIN { printf \"%.2f\", ($incorrect_count/$file_count)*100 }")
+              begin_group "clang-format auto corrected $incorrect_count files:"
               git diff --name-only
               echo "::endgroup::"
-              echo "::error title=Clang Format Check Failed::Formatting issues detected. See 'Clang Format Auto Corrections' group above."
+              echo "::error title=Clang Format Check Failed::Formatting issues detected in $incorrect_count files"
               echo -e "\nPlease correct these files by running clang-format-19 locally, or download the artifact "
               echo 'and run `patch -p1 < /path/to/clang_format.patch`'
+              {
+                echo "| Item                                  | Value     |"
+                echo "|---------------------------------------|-----------|"
+                echo "| Number of Files Analyzed              | $file_count |"
+                echo "| Number of Files Incorrectly Formatted | $incorrect_count |"
+                echo "| % Files Incorrectly Formatted         | ${incorrect_percent}% |"
+              } >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
 
@@ -94,10 +103,20 @@ jobs:
               rm clang_format.patch
               exit 0
             else
-              begin_group "clang-format auto corrected $(git diff --name-only | wc -l) files:"
+              file_count=$(find src tst \( -name "*.hpp" -o -name "*.h" -o -name "*.hh" -o -name "*.cc" -o -name "*.cpp" -o -name "*.c" \) | wc -l)
+              incorrect_count=$(git diff --name-only | wc -l)
+              incorrect_percent=$(awk "BEGIN { printf \"%.2f\", ($incorrect_count/$file_count)*100 }")
+              begin_group "clang-format auto corrected $incorrect_count files:"
               git diff --name-only
               echo "::endgroup::"
-              echo "::error title=Clang Format Check Failed::Formatting issues detected. See 'Clang Format Auto Corrections' group above."
+              echo "::error title=Clang Format Check Failed::Formatting issues detected in $incorrect_count files"
+              {
+                echo "| Item                                  | Value     |"
+                echo "|---------------------------------------|-----------|"
+                echo "| Number of Files Analyzed              | $file_count |"
+                echo "| Number of Files Incorrectly Formatted | $incorrect_count |"
+                echo "| % Files Incorrectly Formatted         | ${incorrect_percent}% |"
+              } >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
 
