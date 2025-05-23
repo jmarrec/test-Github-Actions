@@ -29,9 +29,12 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         shell: bash
         run: |
+            clang-format-19 --version
+            begin_group() { echo -e "::group::\033[93m$1\033[0m"; }
+
+            begin_group "Find changed files"
             echo "GITHUB_REF=$GITHUB_REF GITHUB_BASE_REF=$GITHUB_BASE_REF GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
             git fetch --all
-            clang-format-19 --version
             PR_BRANCH_NAME=remotes/origin/$GITHUB_HEAD_REF
             TARGET_BRANCH_NAME=remotes/origin/$GITHUB_BASE_REF
             # first find if any files changed
@@ -43,7 +46,9 @@ jobs:
             else
               echo "Found $file_count C/C++ changed files"
             fi
+            echo "::endgroup::"
 
+            begin_group "Run clang-format for changes files"
             # Using \0 as a terminator in case we'd ever have files with spaces
             git diff -z "$PR_BRANCH_NAME" "$TARGET_BRANCH_NAME" --name-only src/ tst/ \
               | /bin/grep -z -E '\.(cpp|cc|c|hpp|hh|h)$' \
@@ -51,14 +56,17 @@ jobs:
 
             # clang-format will auto correct files so prepare the diff and use this as artifact
             git diff > clang_format.patch
+            echo "::endgroup::"
 
             # Delete if nothhing otherwise exit 1 to indicate a failed job
             if [ ! -s clang_format.patch ]; then
               rm clang_format.patch
               exit 0
             else
-              echo "clang-format auto corrected files:"
+              begin_group "clang-format auto corrected $(git diff --name-only | wc -l) files:"
               git diff --name-only
+              echo "::endgroup::"
+              echo "::error title=Clang Format Check Failed::Formatting issues detected. See 'Clang Format Auto Corrections' group above."
               echo -e "\nPlease correct these files by running clang-format-19 locally, or download the artifact "
               echo 'and run `patch -p1 < /path/to/clang_format.patch`'
               exit 1
@@ -68,20 +76,26 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         shell: bash
         run: |
-            clang-format --version
+            clang-format-19 --version
+            begin_group() { echo -e "::group::\033[93m$1\033[0m"; }
+
+            begin_group "Run clang-format"
             find src tst \( -name "*.hpp" -o -name "*.h" -o -name "*.hh" -o -name "*.cc" -o -name "*.cpp" -o -name "*.c" \) \
               -print0 | xargs -0 -P "$(nproc)" -n 1 clang-format-19 -style=file -i -fallback-style=none --verbose
 
             # clang-format will auto correct files so prepare the diff and use this as artifact
             git diff > clang_format.patch
+            echo "::endgroup::"
 
             # Delete if nothing otherwise exit 1 to indicate a failed job
             if [ ! -s clang_format.patch ]; then
               rm clang_format.patch
               exit 0
             else
-              echo "clang-format auto corrected files:"
+              begin_group "clang-format auto corrected $(git diff --name-only | wc -l) files:"
               git diff --name-only
+              echo "::endgroup::"
+              echo "::error title=Clang Format Check Failed::Formatting issues detected. See 'Clang Format Auto Corrections' group above."
               exit 1
             fi
 
