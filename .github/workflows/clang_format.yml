@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Install clang-format-19
         shell: bash
@@ -34,11 +36,11 @@ jobs:
 
             begin_group "Find changed files"
             echo "GITHUB_REF=$GITHUB_REF GITHUB_BASE_REF=$GITHUB_BASE_REF GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
-            git fetch --all --quiet
-            PR_BRANCH_NAME=remotes/origin/$GITHUB_HEAD_REF
-            TARGET_BRANCH_NAME=remotes/origin/$GITHUB_BASE_REF
+            # too slow on E+: git fetch --all --quiet
             # first find if any files changed
-            changed_files=$(git diff "$PR_BRANCH_NAME" "$TARGET_BRANCH_NAME" --name-only src/ tst/ | /bin/grep -E '\.(cpp|cc|c|hpp|hh|h)$')
+            # HEAD^ works in PRs because actions/checkout checks out a merge commit by default in PR contexts
+            # and I specified a fetch-depth of 2
+            changed_files=$(git diff --name-only HEAD^ HEAD src/ tst/ | /bin/grep -E '\.(cpp|cc|c|hpp|hh|h)$')
             file_count=$(echo "$changed_files" | wc -l)
             if [ $file_count -eq 0 ]; then
               echo "No files of type (cpp, c, hpp, h) changed. Skipping clang-formatting"
