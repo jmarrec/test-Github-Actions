@@ -1,0 +1,25 @@
+name: Mac Releases
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: macos-13
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download E+
+      run: |
+        gh api \
+          -H "Accept: application/vnd.github+json" \
+          -X GET \
+          /repos/jmarrec/EnergyPlus/actions/artifacts/3177436626/zip \
+          > artifact.zip
+        unzip artifact.zip
+        tar xfz EnergyPlus-25.2.0-f78fadecdb-Darwin-macOS12.1-x86_64.tar.gz
+
+    - name: Setup tmate session
+      if: ${{ always() }}
+      uses: mxschmitt/action-tmate@v3
