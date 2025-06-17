@@ -1,0 +1,21 @@
+name: Test Python
+
+on:
+  push:
+
+jobs:
+  test_python:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/setup-python@v5
+      id: setup_python
+      with:
+        python-version: '3.12'
+
+    - name: Echo echo echo the lights they go
+      run: |
+        echo $RUNNER_TOOL_CACHE/Python/$PYTHON_VERSION/x64
+        ls $RUNNER_TOOL_CACHE/Python/$PYTHON_VERSION/x64
+
+        echo "steps.setup-python.outputs.python-version = ${{ steps.setup-python.outputs.python-version }}"
+        echo "steps.setup-python.outputs.python-path = ${{ steps.setup-python.outputs.python-path }}"
