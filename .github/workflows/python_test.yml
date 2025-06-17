@@ -22,7 +22,6 @@ jobs:
         echo "Python_ROOT_DIR=$Python_ROOT_DIR"
 
         Python_ROOT_DIR="$(dirname "$(dirname "${{ steps.setup-python.outputs.python-path }}")")"
-/opt/hostedtoolcache/Python/3.12.10/x64)
         echo "Python_ROOT_DIR=$Python_ROOT_DIR"
 
         echo $RUNNER_TOOL_CACHE/Python/$PYTHON_VERSION/x64
