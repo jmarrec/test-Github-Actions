@@ -18,5 +18,12 @@ jobs:
         echo "steps.setup-python.outputs.python-path = ${{ steps.setup-python.outputs.python-path }}"
 
         PYTHON_VERSION=${{ steps.setup-python.outputs.python-version }}
+        Python_ROOT_DIR=$(python -c "from pathlib import Path; print(Path('${{ steps.setup-python.outputs.python-path }}').parent.parent)")
+        echo "Python_ROOT_DIR=$Python_ROOT_DIR"
+
+        Python_ROOT_DIR="$(dirname "$(dirname "${{ steps.setup-python.outputs.python-path }}")")"
+/opt/hostedtoolcache/Python/3.12.10/x64)
+        echo "Python_ROOT_DIR=$Python_ROOT_DIR"
+
         echo $RUNNER_TOOL_CACHE/Python/$PYTHON_VERSION/x64
         ls $RUNNER_TOOL_CACHE/Python/$PYTHON_VERSION/x64
