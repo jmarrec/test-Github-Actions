@@ -34,3 +34,17 @@ jobs:
       run: |
         echo $PATH | tr : '\n'
 
+    - name: Print content
+      shell: bash
+      run: |
+        tree
+
+    - name: Try a second checkout
+      uses: actions/checkout@v5
+      with:
+        ref: test_clang-format
+
+    - name: Print content
+      shell: bash
+      run: |
+        tree
