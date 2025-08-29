@@ -16,7 +16,7 @@ runs:
 
     - id: random-number-generator
       shell: bash
-      run: echo "random-id::$(echo $RANDOM)" >> $GITHUB_OUTPUT
+      run: echo "random-id=$RANDOM" >> $GITHUB_OUTPUT
 
     - name: Set up env variable
       shell: bash
