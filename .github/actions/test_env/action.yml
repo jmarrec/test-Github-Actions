@@ -22,3 +22,10 @@ runs:
       shell: bash
       run: |
         echo "NEW_ENV=helloworld" >> $GITHUB_ENV
+
+
+    - name: Prepand to PATH
+      shell: bash
+      run: |
+        echo "PATH=NewEntryOnENV:$PATH" >> $GITHUB_ENV
+        echo "NewEntryOnPath" >> $GITHUB_PATH

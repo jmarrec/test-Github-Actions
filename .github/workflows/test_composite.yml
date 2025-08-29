@@ -23,9 +23,14 @@ jobs:
       shell: bash
       run: echo random-number ${{ steps.foo.outputs.random-number }}
 
-    - name: Is the env variable persisted
+    - name: the env variable IS persisted
       shell: bash
       run: |
         echo $NEW_ENV
         env
+
+    - name: Is the PATH persisted
+      shell: bash
+      run: |
+        echo $PATH | tr : '\n'
 
