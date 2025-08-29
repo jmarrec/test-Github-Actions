@@ -1,0 +1,31 @@
+name: Test bed
+
+on:
+  push:
+
+env:
+  TRUE_BOOL: true
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Call my own action
+      uses: ./.github/actions/test_env
+      with:
+        who-to-greet: 'Mona the Octocat'
+
+    - name: Retrieve composite action output
+      shell: bash
+      run: echo random-number ${{ steps.foo.outputs.random-number }}
+
+    - name: Is the env variable persisted
+      shell: bash
+      run: |
+        echo $NEW_ENV
+        env
+
