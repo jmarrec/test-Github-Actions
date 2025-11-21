@@ -99,13 +99,36 @@ body:
     id: env
     attributes:
       label: Environment
-      description: Some additional details about your environment for this issue (if relevant)
-      value: |
-        * Platform (Operating system, version, architecture): **Linux Ubuntu 24.04**
+      description: |
+        Some additional details about your environment for this issue (if relevant)
+
+        Helpers
+        --------
+        To get your platform info, you can run the following commands in your terminal:
+
+        * Linux:
+
+        ```bash
+        echo "* Platform (Operating system, version, architecture): **$(lsb_release -is) $(lsb_release -rs) $(uname -m)**"
+        ```
+
+        * macOS:
+
+        ```bash
+        echo "* Platform (Operating system, version, architecture): **$(sw_vers -productName) $(sw_vers -productVersion) $(uname -m)**"
+        ```
+
+        * Windows (PowerShell):
+
+        ```powershell
+        $os = Get-CimInstance Win32_OperatingSystem
+        $release = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").DisplayVersion
+        Write-Output "* Platform (Operating system, version, architecture): **$($os.Caption) $($os.Version) $release $env:PROCESSOR_ARCHITECTURE**"
+        ```
       placeholder: |
-        lsb_release --all
-        uname -i
-        openstudio --version
+        * Platform (Operating system, version, architecture): **Linux Ubuntu 24.04**
+        or
+        N/A
     validations:
       required: true
 
