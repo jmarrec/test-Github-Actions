@@ -6,7 +6,6 @@ body:
     attributes:
       value: |
         Thanks for taking the time to submit a report.
-        **Please don't forget to update the issue title.**
         Include all applicable information to help us reproduce
 
   - type: textarea
@@ -102,9 +101,11 @@ body:
       description: |
         Some additional details about your environment for this issue (if relevant)
 
-        Helpers
-        --------
-        To get your platform info, you can run the following commands in your terminal:
+        To get your platform info, you can run the following commands in your terminal
+
+        <details>
+
+        <summary>Helpers: click to expand</summary>
 
         * Linux:
 
@@ -125,6 +126,8 @@ body:
         $release = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").DisplayVersion
         Write-Output "* Platform (Operating system, version, architecture): **$($os.Caption) $($os.Version) $release $env:PROCESSOR_ARCHITECTURE**"
         ```
+        </details>
+
       placeholder: |
         * Platform (Operating system, version, architecture): **Linux Ubuntu 24.04**
         or
@@ -137,11 +140,9 @@ body:
     attributes:
       label: Version of OpenStudio
       description: |
-        Version of OpenStudio (if using an intermediate build, include SHA)
-      value: |
-        **3.10.0+86d7e215a1**
+        Version of OpenStudio (if using an intermediate build, include SHA). `openstudio --version`
       placeholder: |
-        openstudio --version
+        3.10.0+86d7e215a1
     validations:
       required: true
 
@@ -149,6 +150,8 @@ body:
     id: context
     attributes:
       label: Context
-      description: How has this issue affected you? What are you trying to accomplish? Any link to related issues or UnmetHours post?
+      description: |
+        How has this issue affected you? What are you trying to accomplish?
+        Any link to related issues or UnmetHours post?
     validations:
       required: false
