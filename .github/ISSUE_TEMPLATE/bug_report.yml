@@ -1,6 +1,6 @@
-name: 'Bug Report'
-description: 'Use this template for reporting an issue.'
-labels: 'Triage'
+name: Bug Report
+description: Use this template for reporting an issue.
+labels: Triage
 body:
   - type: markdown
     attributes:
@@ -28,7 +28,6 @@ body:
     validations:
       required: true
 
-
   - type: textarea
     id: expected_behavior
     attributes:
@@ -44,12 +43,16 @@ body:
       label: Steps to reproduce
       description: |
         Provide an unambiguous set of steps to reproduce this bug.
-        Provide a link to a model that has the bug (a minimum complete and verifiable example (MCVE) is preferred) and/or code to reproduce
+
+        Provide a OSM model that has the bug and/or code (Ruby, Python) to reproduce.
+
+        You **can supply a link to your OSM if applicable**, or rename it to in.osm.txt and upload it directly here by drag and drop.
+        Ideally, make it a _Minimum, Complete, Verifiable, Example (MCVE)_ by including the smallest possible number of input objects to reproduce the defect.
+
       placeholder: |
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
+        1. Create a '...'
+        2. Connect it to '....'
+        3. See error
       value: |
         1.
         2.
@@ -57,12 +60,14 @@ body:
         4.
 
         or
+
         ```ruby
+        require 'openstudio'
         include OpenStudio::Model
         m = Model.new
+        # m = Model.load('path/to/model.osm').get
         [...]
         ```
-
     validations:
       required: true
 
@@ -75,16 +80,18 @@ body:
     validations:
       required: false
 
-  - type: checkboxes
-    id: operating_system_checkboxes
+  - type: dropdown
+    id: operating_system_multiple
     attributes:
       label: Operating System affected
+      multiple: true
       description: You may select more than one.
       options:
+        - label: All
         - label: macOS x86_64
         - label: macOS arm64
-        - label: Ubuntu 18.04
-        - label: Ubuntu 20.04
+        - label: Ubuntu 22.04
+        - label: Ubuntu 24.04
         - label: Windows 10
         - label: Windows 11
 
@@ -94,8 +101,7 @@ body:
       label: Environment
       description: Some additional details about your environment for this issue (if relevant)
       value: |
-        * Platform (Operating system, version, architecture): **Linux Ubuntu 18.04**
-        * Version of OpenStudio (if using an intermediate build, include SHA): **3.5.0**
+        * Platform (Operating system, version, architecture): **Linux Ubuntu 24.04**
       placeholder: |
         lsb_release --all
         uname -i
@@ -110,7 +116,7 @@ body:
       description: |
         Version of OpenStudio (if using an intermediate build, include SHA)
       value: |
-        **3.5.0**
+        **3.10.0+86d7e215a1**
       placeholder: |
         openstudio --version
     validations:
@@ -120,6 +126,6 @@ body:
     id: context
     attributes:
       label: Context
-      description: How has this issue affected you? What are you trying to accomplish?
+      description: How has this issue affected you? What are you trying to accomplish? Any link to related issues or UnmetHours post?
     validations:
       required: false
