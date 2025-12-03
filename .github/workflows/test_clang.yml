@@ -15,7 +15,7 @@ env:
 jobs:
   build:
 
-    name: "${{ matrix.os }} - ${{ matrix.arch }}"
+    name: "${{ matrix.os }} (${{ matrix.arch }})"
 
     runs-on: ${{ matrix.os }}
     continue-on-error: true
@@ -43,12 +43,21 @@ jobs:
       run: |
         set -x
 
+        begin_group() { echo -e "::group::\033[93m$1\033[0m"; }
+
+        begin_group "Default"
         xcrun --sdk macosx --show-sdk-path
-
-        ls //Applications/Xcode_*
-
-        which clang
         clang --version
+        which clang
+        echo "::endgroup::"
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+        for xcode in $(find /Applications -name "Xcode_*.app" -type d -maxdepth 1); do
+          begin_group "$xcode"
+          sudo xcode-select -switch $xcode
+          clang --version
+          which clang
+          echo "::endgroup::"
+        done
+
+    #- name: Setup tmate session
+    #  uses: mxschmitt/action-tmate@v3
