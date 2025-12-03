@@ -59,5 +59,39 @@ jobs:
           echo "::endgroup::"
         done
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+        pip install markdown
+
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
+
+
+    - name: produce a table
+      shell: python
+      run: |
+        import os
+        from pathlib import Path
+        import subprocess
+
+        def get_clang_version():
+            result = subprocess.check_output(['clang', '--version'], text=True)
+            return result.splitlines()[0]
+
+        def get_xcode_version():
+            result = subprocess.check_output(['xcodebuild', '-version'], text=True)
+            return result.splitlines()[0].split(' ')[-1]
+
+        def print_and_append_to_github_step_summary(line):
+            print(line)
+            summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+            if not summary_path:
+                return
+            with Path(summary_path).open("a", encoding="utf-8") as f:
+                f.write(line + "\n")
+
+        xcode_paths = sorted(Path('/Applications').glob('Xcode_*.app'))
+        print_and_append_to_github_step_summary("| Runner | arch | Xcode Version | Build | Clang Version |")
+        print_and_append_to_github_step_summary("|--------|------|---------------|-------|---------------|")
+        for xcode_path in xcode_paths:
+            subprocess.check_call(['sudo', 'xcode-select', '-switch', str(xcode_path)])
+            clang_version = get_clang_version()
+            print_and_append_to_github_step_summary(f"| ${{ matrix.os }} | ${{ matrix.arch }} | {xcode_path.stem} | {get_xcode_version()} | {get_clang_version()} |")
