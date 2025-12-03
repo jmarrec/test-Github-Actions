@@ -1,0 +1,42 @@
+name: Test Windows
+
+on:
+  push:
+    branches: [ main, develop ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  VERIFY_SSL: true
+
+jobs:
+  build:
+
+    name: "${{ matrix.os }} (${{ matrix.arch }})"
+
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    strategy:
+      # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        include:
+        - os: windows-2022
+          arch: x86_64
+        - os: windows-2025
+          arch: x86_64
+
+    steps:
+    - name: Show MSVC versions
+      shell: powershell
+      run: |
+        Write-Host "##[group]Default"
+        vswhere -products '*' -requires Microsoft.Component.MSBuild -property installationPath | ForEach-Object {
+          $msbuildPath = Join-Path -Path $_ -ChildPath 'MSBuild\Current\Bin\MSBuild.exe'
+          & $msbuildPath /version
+        }
+        Write-Host "##[endgroup]"
