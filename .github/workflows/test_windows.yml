@@ -34,9 +34,9 @@ jobs:
     - name: Show MSVC versions
       shell: powershell
       run: |
-        Write-Host "##[group]Default"
         vswhere -products '*' -requires Microsoft.Component.MSBuild -property installationPath | ForEach-Object {
           $msbuildPath = Join-Path -Path $_ -ChildPath 'MSBuild\Current\Bin\MSBuild.exe'
           & $msbuildPath /version
         }
-        Write-Host "##[endgroup]"
+        pip install conan
+        conan profile detect --force
