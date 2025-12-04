@@ -34,6 +34,7 @@ jobs:
         - os: macos-15
           arch: armv8
         - os: macos-26
+          arch: armv8
 
     steps:
     - name: Show Xcode versions
@@ -52,4 +53,4 @@ jobs:
         conan --version
         conan profile detect
         cat $(conan profile path default)
-        conan install --requires libffi/3.4.4 --build=missing
+        conan install --requires libffi/3.4.4 --build=missing -s compiler.cppstd=20
