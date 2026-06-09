@@ -1,0 +1,38 @@
+name: Test YAML anchors
+
+on:
+  push:
+  workflow_dispatch:
+
+# Test whether a top-level custom key can hold a YAML anchor
+x-matrix: &matrix
+  os: [ubuntu-latest, windows-latest]
+
+jobs:
+  top-level-anchor:
+    name: Top-level anchor (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: *matrix
+    steps:
+      - run: echo "Running on ${{ matrix.os }}"
+
+  first-use-anchor:
+    name: First-use anchor (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: &matrix2
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - run: echo "Running on ${{ matrix.os }}"
+
+  first-use-anchor-reuse:
+    name: First-use anchor reuse (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: *matrix2
+    steps:
+      - run: echo "Running on ${{ matrix.os }}"
