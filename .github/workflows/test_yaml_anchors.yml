@@ -5,18 +5,20 @@ on:
   workflow_dispatch:
 
 # Test whether a top-level custom key can hold a YAML anchor
-x-matrix: &matrix
-  os: [ubuntu-latest, windows-latest]
+# Invalid workflow file: .github/workflows/test_yaml_anchors.yml#L1
+# (Line: 8, Col: 1): Unexpected value 'x-matrix'
+# x-matrix: &matrix
+#   os: [ubuntu-latest, windows-latest]
 
 jobs:
-  top-level-anchor:
-    name: Top-level anchor (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix: *matrix
-    steps:
-      - run: echo "Running on ${{ matrix.os }}"
+#  top-level-anchor:
+#    name: Top-level anchor (${{ matrix.os }})
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      fail-fast: false
+#      matrix: *matrix
+#    steps:
+#      - run: echo "Running on ${{ matrix.os }}"
 
   first-use-anchor:
     name: First-use anchor (${{ matrix.os }})
