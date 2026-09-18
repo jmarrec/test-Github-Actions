@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(fortran_mcve NONE)
+project(fortran_mcve C CXX)
 
 include(CMakeAddFortranSubdirectory.cmake)
 
