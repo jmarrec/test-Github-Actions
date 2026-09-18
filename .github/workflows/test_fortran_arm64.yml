@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 
 env:
+  # This does jack squat. The env variable is FC, not CMAKE_Fortran_COMPILER.
   CMAKE_Fortran_COMPILER: "/c/mingw64/bin/x86_64-w64-mingw32-gfortran.exe"
 
 jobs:

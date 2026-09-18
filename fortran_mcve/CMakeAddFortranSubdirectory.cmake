@@ -102,12 +102,11 @@ function(cmake_add_fortran_subdirectory subdir)
     message(FATAL_ERROR "Option NO_EXTERNAL_INSTALL is required (for forward compatibility) " "but was not given.")
   endif()
 
-  # if we are not using MSVC without fortran support
-  # then just use the usual add_subdirectory to build
-  # the fortran library
-  message(STATUS "Calling check_language(Fortran) to see if a fortran compiler is available")
-  check_language(Fortran)
-  if(NOT (MSVC AND (NOT CMAKE_Fortran_COMPILER)))
+  # if we are not using MSVC which doesn't have fortran support
+  # then just use the usual add_subdirectory to build the fortran library
+  if(NOT MSVC)
+    message(STATUS "Calling check_language(Fortran) to see if a fortran compiler is available")
+    check_language(Fortran)
     add_subdirectory(${subdir})
     return()
   endif()
