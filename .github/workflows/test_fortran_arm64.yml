@@ -36,11 +36,6 @@ jobs:
     - name: Create Build Directory
       run: cmake -E make_directory ./build/
 
-    - name: Setup upterm session
-      uses: owenthereal/action-upterm@v1
-      with:
-        detached: true
-
     - name: Configure CMake
       working-directory: ./build
       shell: bash
