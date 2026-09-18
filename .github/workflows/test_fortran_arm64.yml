@@ -1,0 +1,50 @@
+name: Test Fortran arm64 MCVE
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  CMAKE_Fortran_COMPILER: "/c/msys64/mingw64/bin/x86_64-w64-mingw32-gfortran.exe"
+
+jobs:
+  configure_and_build:
+    name: "${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [x64, arm64]
+        include:
+        - name: x64
+          os: windows-2022
+          vs-generator: x64
+        - name: arm64
+          os: windows-11-arm
+          vs-generator: ARM64
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Check msys64 mingw64 gfortran
+      shell: bash
+      run: |
+        ls -la /c/msys64/mingw64/bin/ | grep -i fortran || echo "NOT FOUND"
+        /c/msys64/mingw64/bin/x86_64-w64-mingw32-gfortran.exe --version || echo "FAILED TO RUN"
+
+    - name: Create Build Directory
+      run: cmake -E make_directory ./build/
+
+    - name: Configure CMake
+      working-directory: ./build
+      shell: bash
+      timeout-minutes: 10
+      run: |
+        set -x
+        cmake -G "Visual Studio 17 2022" -A ${{ matrix.vs-generator }} ../fortran_mcve
+
+    - name: Build
+      working-directory: ./build
+      shell: bash
+      run: cmake --build . --config Release
