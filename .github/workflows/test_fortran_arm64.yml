@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  CMAKE_Fortran_COMPILER: "/c/msys64/mingw64/bin/x86_64-w64-mingw32-gfortran.exe"
+  CMAKE_Fortran_COMPILER: "/c/mingw64/bin/x86_64-w64-mingw32-gfortran.exe"
 
 jobs:
   configure_and_build:
@@ -34,9 +34,6 @@ jobs:
 
     - name: Create Build Directory
       run: cmake -E make_directory ./build/
-
-    - name: Setup upterm session
-      uses: owenthereal/action-upterm@v1
 
     - name: Configure CMake
       working-directory: ./build
