@@ -105,11 +105,13 @@ function(cmake_add_fortran_subdirectory subdir)
   # if we are not using MSVC without fortran support
   # then just use the usual add_subdirectory to build
   # the fortran library
+  message(STATUS "Calling check_language(Fortran) to see if a fortran compiler is available")
   check_language(Fortran)
   if(NOT (MSVC AND (NOT CMAKE_Fortran_COMPILER)))
     add_subdirectory(${subdir})
     return()
   endif()
+  message(STATUS "MSVC without fortran support detected, using MinGW gfortran to build ${subdir}")
 
   # if we have MSVC without Intel fortran then setup
   # external projects to build with mingw fortran

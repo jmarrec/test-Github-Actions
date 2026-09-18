@@ -12,4 +12,8 @@ execute_process(
   -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=@CMAKE_OSX_DEPLOYMENT_TARGET@
   --no-warn-unused-cli
   ${CMAKE_COMMAND_LINE}
-  "@source_dir@")
+  "@source_dir@"
+  RESULT_VARIABLE _cmaf_result
+  TIMEOUT 120
+  COMMAND_ECHO STDOUT)
+message(STATUS "Nested MinGW configure result: ${_cmaf_result}")

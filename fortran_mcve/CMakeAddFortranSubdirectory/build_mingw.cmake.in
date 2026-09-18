@@ -1,2 +1,3 @@
 set(ENV{PATH} "@MINGW_PATH@\;$ENV{PATH}")
-execute_process(COMMAND "@CMAKE_COMMAND@" --build . )
+execute_process(COMMAND "@CMAKE_COMMAND@" --build . RESULT_VARIABLE _cmaf_build_result TIMEOUT 120 COMMAND_ECHO STDOUT)
+message(STATUS "Nested MinGW build result: ${_cmaf_build_result}")
