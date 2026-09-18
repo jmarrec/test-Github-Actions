@@ -26,8 +26,12 @@ jobs:
     - name: Check msys64 mingw64 gfortran
       shell: bash
       run: |
+        echo "Trying in /c/msys64/mingw64/bin"
         ls -la /c/msys64/mingw64/bin/ | grep -i fortran || echo "NOT FOUND"
         /c/msys64/mingw64/bin/x86_64-w64-mingw32-gfortran.exe --version || echo "FAILED TO RUN"
+        echo "Trying in /c/mingw64"
+        ls -la /c/mingw64/bin/ | grep -i fortran || echo "NOT FOUND"
+        /c/mingw64/bin/x86_64-w64-mingw32-gfortran.exe --version || echo "FAILED TO RUN"
 
     - name: Create Build Directory
       run: cmake -E make_directory ./build/
