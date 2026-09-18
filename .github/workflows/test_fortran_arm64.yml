@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+env:
+  CMAKE_Fortran_COMPILER: "/c/mingw64/bin/x86_64-w64-mingw32-gfortran.exe"
+
 jobs:
   configure_and_build:
     name: "${{ matrix.name }}"
