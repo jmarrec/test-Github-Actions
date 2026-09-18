@@ -11,7 +11,6 @@ jobs:
   configure_and_build:
     name: "${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -35,6 +34,9 @@ jobs:
 
     - name: Create Build Directory
       run: cmake -E make_directory ./build/
+
+    - name: Setup upterm session
+      uses: owenthereal/action-upterm@v1
 
     - name: Configure CMake
       working-directory: ./build
