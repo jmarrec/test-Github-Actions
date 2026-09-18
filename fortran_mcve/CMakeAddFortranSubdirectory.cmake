@@ -56,6 +56,8 @@ function(_setup_mingw_config_and_build source_dir build_dir)
   if(NOT MINGW_GFORTRAN)
     message(FATAL_ERROR "gfortran not found, please install MinGW with the gfortran option."
                         "Or set the cache variable MINGW_GFORTRAN to the full path. " " This is required to build")
+  else()
+    message(STATUS "Found MinGW gfortran: ${MINGW_GFORTRAN}")
   endif()
 
   # Validate the MinGW gfortran we found.
