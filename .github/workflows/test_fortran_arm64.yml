@@ -36,6 +36,7 @@ jobs:
         echo "Trying in /c/mingw64"
         ls -la /c/mingw64/bin/ | grep -i fortran || echo "NOT FOUND"
         /c/mingw64/bin/x86_64-w64-mingw32-gfortran.exe --version || echo "FAILED TO RUN"
+        /c/mingw64/bin/x86_64-w64-mingw32-gfortran.exe -v || echo "FAILED TO RUN"
 
     - name: Create Build Directory
       run: cmake -E make_directory ./build/
