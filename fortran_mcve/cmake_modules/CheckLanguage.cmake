@@ -86,6 +86,8 @@ block(SCOPE_FOR POLICIES)
 cmake_policy(SET CMP0126 NEW)
 
 macro(check_language lang)
+  message(WARNING "Using a patched CheckLanguage.cmake")
+
   if(NOT DEFINED CMAKE_${lang}_COMPILER)
     set(_desc "Looking for a ${lang} compiler")
     message(CHECK_START "${_desc}")
@@ -151,7 +153,7 @@ file(WRITE \"\${CMAKE_CURRENT_BINARY_DIR}/result.cmake\" \"${_output_variables}\
       OUTPUT_VARIABLE _cl_output
       ERROR_VARIABLE _cl_output
       RESULT_VARIABLE _cl_result
-      TIMEOUT 120
+      TIMEOUT 60
       )
     include(${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/Check${lang}/result.cmake OPTIONAL)
     if(CMAKE_${lang}_COMPILER AND "${_cl_result}" STREQUAL "0")
