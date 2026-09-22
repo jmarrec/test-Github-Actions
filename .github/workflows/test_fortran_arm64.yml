@@ -44,7 +44,7 @@ jobs:
     - name: Configure CMake
       working-directory: ./build
       shell: bash
-      timeout-minutes: 2
+      timeout-minutes: 4
       run: |
         cmake --debug-output -G "Visual Studio 17 2022" -A ${{ matrix.vs-generator }} -DMINGW_GFORTRAN=${{ env.MINGW_GFORTRAN }} ../fortran_mcve
 
