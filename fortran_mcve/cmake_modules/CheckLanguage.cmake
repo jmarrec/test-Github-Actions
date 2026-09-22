@@ -144,8 +144,6 @@ file(WRITE \"\${CMAKE_CURRENT_BINARY_DIR}/result.cmake\" \"${_output_variables}\
     execute_process(
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/Check${lang}
       COMMAND ${CMAKE_COMMAND} . --debug-output
-                                 --trace-expand
-                                 --trace-source=CMakeDetermineCompilerId.cmake
                                  -G ${CMAKE_GENERATOR}
                                  -A "${CMAKE_GENERATOR_PLATFORM}"
                                  -T "${CMAKE_GENERATOR_TOOLSET}"
