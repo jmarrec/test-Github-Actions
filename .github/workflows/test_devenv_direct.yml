@@ -4,6 +4,10 @@ on:
   push:
   workflow_dispatch:
 
+env:
+  NUM_ATTEMPTS: 10
+  TIMEOUT: 90
+
 jobs:
   devenv_direct:
     name: "${{ matrix.name }}"
@@ -46,7 +50,7 @@ jobs:
 
         $failedAttempts = @()
 
-        for ($i = 1; $i -le 10; $i++) {
+        for ($i = 1; $i -le [int]$env:NUM_ATTEMPTS; $i++) {
           Write-Host "=== Attempt $i ==="
           $sw = [Diagnostics.Stopwatch]::StartNew()
           $proc = Start-Process -FilePath $devenv `
@@ -55,7 +59,7 @@ jobs:
             -RedirectStandardOutput "attempt_$i.out.log" `
             -RedirectStandardError "attempt_$i.err.log"
 
-          if (-not $proc.WaitForExit(60000)) {
+          if (-not $proc.WaitForExit([int]$env:TIMEOUT * 1000)) {
             Write-Host "Attempt $i TIMED OUT after $($sw.Elapsed) - killing process $($proc.Id)"
             Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
             $failedAttempts += $i
