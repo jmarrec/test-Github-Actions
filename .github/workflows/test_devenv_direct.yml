@@ -1,0 +1,63 @@
+name: Test devenv direct MCVE
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  devenv_direct:
+    name: "${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [x64, arm64]
+        include:
+        - name: x64
+          os: windows-2022
+          platform: x64
+        - name: arm64
+          os: windows-11-arm
+          platform: ARM64
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Call devenv.com directly (first VS invocation on this VM)
+      shell: pwsh
+      working-directory: fortran_mcve/devenv_direct
+      run: |
+        $devenv = "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/devenv.com"
+        $vfproj = "CompilerIdFortran_${{ matrix.name }}.vfproj"
+        Write-Host "Using devenv: $devenv"
+        Write-Host "Using project: $vfproj"
+
+        for ($i = 1; $i -le 10; $i++) {
+          Write-Host "=== Attempt $i ==="
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          $proc = Start-Process -FilePath $devenv `
+            -ArgumentList $vfproj, "/build", "Debug" `
+            -PassThru -NoNewWindow `
+            -RedirectStandardOutput "attempt_$i.out.log" `
+            -RedirectStandardError "attempt_$i.err.log"
+
+          if (-not $proc.WaitForExit(60000)) {
+            Write-Host "Attempt $i TIMED OUT after $($sw.Elapsed) - killing process $($proc.Id)"
+            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+          } else {
+            Write-Host "Attempt $i finished after $($sw.Elapsed) with exit code $($proc.ExitCode)"
+          }
+
+          Write-Host "--- stdout ---"
+          Get-Content "attempt_$i.out.log" -ErrorAction SilentlyContinue
+          Write-Host "--- stderr ---"
+          Get-Content "attempt_$i.err.log" -ErrorAction SilentlyContinue
+        }
+
+    - name: Upload devenv_direct artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: devenv-direct-${{ matrix.name }}
+        path: fortran_mcve/devenv_direct/
+        if-no-files-found: warn
