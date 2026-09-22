@@ -143,7 +143,7 @@ file(WRITE \"\${CMAKE_CURRENT_BINARY_DIR}/result.cmake\" \"${_output_variables}\
     endif()
     execute_process(
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/Check${lang}
-      COMMAND ${CMAKE_COMMAND} . -G ${CMAKE_GENERATOR}
+      COMMAND ${CMAKE_COMMAND} . --debug-output -G ${CMAKE_GENERATOR}
                                  -A "${CMAKE_GENERATOR_PLATFORM}"
                                  -T "${CMAKE_GENERATOR_TOOLSET}"
                                  ${_D_CMAKE_GENERATOR_INSTANCE}
@@ -153,6 +153,9 @@ file(WRITE \"\${CMAKE_CURRENT_BINARY_DIR}/result.cmake\" \"${_output_variables}\
       OUTPUT_VARIABLE _cl_output
       ERROR_VARIABLE _cl_output
       RESULT_VARIABLE _cl_result
+      COMMAND_ECHO STDOUT
+      ECHO_OUTPUT_VARIABLE
+      ECHO_ERROR_VARIABLE
       TIMEOUT 60
       )
     include(${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/Check${lang}/result.cmake OPTIONAL)
@@ -164,6 +167,9 @@ file(WRITE \"\${CMAKE_CURRENT_BINARY_DIR}/result.cmake\" \"${_output_variables}\
     else()
       set(CMAKE_${lang}_COMPILER NOTFOUND)
       set(_CHECK_COMPILER_STATUS CHECK_FAIL)
+      message(WARNING
+        "${_desc} failed with the following output:\n"
+        "${_cl_output}\n")
       message(CONFIGURE_LOG
         "${_desc} failed with the following output:\n"
         "${_cl_output}\n")
