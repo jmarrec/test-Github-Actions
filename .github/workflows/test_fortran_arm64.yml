@@ -48,6 +48,55 @@ jobs:
       run: |
         cmake --debug-output -G "Visual Studio 17 2022" -A ${{ matrix.vs-generator }} -DMINGW_GFORTRAN=${{ env.MINGW_GFORTRAN }} ../fortran_mcve
 
+    - name: Retry devenv.com repeatedly with a timeout
+      if: always()
+      shell: pwsh
+      run: |
+        $vfDir = Get-ChildItem -Path "build/CMakeFiles/CheckFortran/CMakeFiles" -Directory -ErrorAction SilentlyContinue |
+          ForEach-Object { Join-Path $_.FullName "CompilerIdFortran" } |
+          Where-Object { Test-Path $_ } |
+          Select-Object -First 1
+
+        if (-not $vfDir) {
+          Write-Host "CompilerIdFortran directory not found, skipping"
+          exit 0
+        }
+
+        Write-Host "Using directory: $vfDir"
+        Set-Location $vfDir
+
+        $devenv = "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/devenv.com"
+
+        for ($i = 1; $i -le 10; $i++) {
+          Write-Host "=== Attempt $i ==="
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          $proc = Start-Process -FilePath $devenv `
+            -ArgumentList "CompilerIdFortran.vfproj", "/build", "Debug" `
+            -PassThru -NoNewWindow `
+            -RedirectStandardOutput "attempt_$i.out.log" `
+            -RedirectStandardError "attempt_$i.err.log"
+
+          if (-not $proc.WaitForExit(60000)) {
+            Write-Host "Attempt $i TIMED OUT after $($sw.Elapsed) - killing process $($proc.Id)"
+            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+          } else {
+            Write-Host "Attempt $i finished after $($sw.Elapsed) with exit code $($proc.ExitCode)"
+          }
+
+          Write-Host "--- stdout ---"
+          Get-Content "attempt_$i.out.log" -ErrorAction SilentlyContinue
+          Write-Host "--- stderr ---"
+          Get-Content "attempt_$i.err.log" -ErrorAction SilentlyContinue
+        }
+
+    - name: Upload CompilerIdFortran artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: CompilerIdFortran-${{ matrix.name }}
+        path: build/CMakeFiles/CheckFortran/CMakeFiles/*/CompilerIdFortran/
+        if-no-files-found: warn
+
     - name: Build
       working-directory: ./build
       shell: bash
