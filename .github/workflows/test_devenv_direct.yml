@@ -11,14 +11,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [x64, arm64]
+        name: [x64, arm64, arm64-vs2026, x64-vs2026]
         include:
         - name: x64
           os: windows-2022
           platform: x64
+          vfproj_name: x64
+          devenv_path: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/devenv.com"
         - name: arm64
           os: windows-11-arm
           platform: ARM64
+          vfproj_name: arm64
+          devenv_path: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/devenv.com"
+        - name: arm64-vs2026
+          os: windows-11-vs2026-arm
+          platform: ARM64
+          vfproj_name: arm64
+          devenv_path: "C:/Program Files/Microsoft Visual Studio/2026/Enterprise/Common7/IDE/devenv.com"
+        - name: x64-vs2026
+          os: windows-2025-vs2026
+          platform: x64
+          vfproj_name: x64
+          devenv_path: "C:/Program Files/Microsoft Visual Studio/2026/Enterprise/Common7/IDE/devenv.com"
 
     steps:
     - uses: actions/checkout@v7
@@ -27,8 +41,8 @@ jobs:
       shell: pwsh
       working-directory: fortran_mcve/devenv_direct
       run: |
-        $devenv = "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/devenv.com"
-        $vfproj = "CompilerIdFortran_${{ matrix.name }}.vfproj"
+        $devenv = "${{ matrix.devenv_path }}"
+        $vfproj = "CompilerIdFortran_${{ matrix.vfproj_name }}.vfproj"
         Write-Host "Using devenv: $devenv"
         Write-Host "Using project: $vfproj"
 
