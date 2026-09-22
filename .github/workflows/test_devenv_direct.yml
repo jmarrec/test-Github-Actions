@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  NUM_ATTEMPTS: 10
+  NUM_ATTEMPTS: 2
   TIMEOUT: 90
 
 jobs:
