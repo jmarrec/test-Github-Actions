@@ -56,7 +56,7 @@ jobs:
 
     - name: Upload devenv_direct artifacts
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: devenv-direct-${{ matrix.name }}
         path: fortran_mcve/devenv_direct/
