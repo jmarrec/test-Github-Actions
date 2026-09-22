@@ -46,6 +46,8 @@ jobs:
         Write-Host "Using devenv: $devenv"
         Write-Host "Using project: $vfproj"
 
+        $failedAttempts = @()
+
         for ($i = 1; $i -le 10; $i++) {
           Write-Host "=== Attempt $i ==="
           $sw = [Diagnostics.Stopwatch]::StartNew()
@@ -58,6 +60,7 @@ jobs:
           if (-not $proc.WaitForExit(60000)) {
             Write-Host "Attempt $i TIMED OUT after $($sw.Elapsed) - killing process $($proc.Id)"
             Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            $failedAttempts += $i
           } else {
             Write-Host "Attempt $i finished after $($sw.Elapsed) with exit code $($proc.ExitCode)"
           }
@@ -66,6 +69,11 @@ jobs:
           Get-Content "attempt_$i.out.log" -ErrorAction SilentlyContinue
           Write-Host "--- stderr ---"
           Get-Content "attempt_$i.err.log" -ErrorAction SilentlyContinue
+        }
+
+        if ($failedAttempts.Count -gt 0) {
+          Write-Host "::error::$($failedAttempts.Count) attempt(s) timed out: $($failedAttempts -join ', ')"
+          exit 1
         }
 
     - name: Upload devenv_direct artifacts
