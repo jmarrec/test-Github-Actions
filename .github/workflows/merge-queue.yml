@@ -3,6 +3,7 @@ name: Merge Queue Check
 on:
   merge_group:
     branches: [main]
+  workflow_dispatch: {}
 
 jobs:
   check:
