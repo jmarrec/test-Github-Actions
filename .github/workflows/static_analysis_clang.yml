@@ -7,41 +7,49 @@ on:
         description: 'ref, branch, tag, or SHA to check out'
         required: false
         default: 'develop'
-      check_run_id:
-        description: 'ID of the check run (created by the bot) to update with the result'
+      pr_number:
+        description: 'Number of the pull request to label "Staged" (removed again if the run fails)'
         required: false
         default: ''
 
 permissions:
   contents: read
   checks: write
+  issues: write
+  pull-requests: write
 
 jobs:
   check:
     name: Check ${{ inputs.ref }}
     runs-on: ubuntu-24.04
     steps:
-    # The check run was created by the bot's GitHub App, and only that App can modify it,
-    # so mint an installation token for it (the default GITHUB_TOKEN would get a 403).
-    - name: Create GitHub App token
-      id: app-token
-      if: inputs.check_run_id != ''
-      uses: actions/create-github-app-token@v3
-      with:
-        client-id: ${{ secrets.EPBOT_CLIENT_ID }}
-        private-key: ${{ secrets.EPBOT_PRIVATE_KEY }}
-        permission-checks: write
-
-    - name: Mark check run in progress
-      id: mark_in_progress
-      if: inputs.check_run_id != ''
+    # workflow_dispatch runs aren't attached to the PR, so create the check run ourselves
+    # (with the workflow's own GITHUB_TOKEN) against the commit being checked.
+    - name: Create check run
+      id: create_check
       env:
-        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        GITHUB_TOKEN: ${{ github.token }}
+        HEAD_SHA: ${{ inputs.ref }}
       run: |
         started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
         echo "started_at=$started_at" >> "$GITHUB_OUTPUT"
-        gh api "repos/${{ github.repository }}/check-runs/${{ inputs.check_run_id }}" \
-          -X PATCH -f status=in_progress -f started_at="$started_at"
+        check_run_id=$(gh api "repos/${{ github.repository }}/check-runs" \
+          -f name="EnergyPlus Static Analysis" \
+          -f head_sha="$HEAD_SHA" \
+          -f status=in_progress \
+          -f started_at="$started_at" \
+          -f details_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+          --jq .id)
+        echo "check_run_id=$check_run_id" >> "$GITHUB_OUTPUT"
+
+    - name: Add the Staged label
+      if: inputs.pr_number != ''
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+      run: |
+        gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/labels" \
+          -f 'labels[]=Staged'
 
     - uses: actions/checkout@v7
       with:
@@ -70,12 +78,14 @@ jobs:
         exit 1
 
     - name: Report check run result
-      if: always() && inputs.check_run_id != ''
+      if: always() && steps.create_check.outputs.check_run_id != ''
       env:
-        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        GITHUB_TOKEN: ${{ github.token }}
+        CHECK_RUN_ID: ${{ steps.create_check.outputs.check_run_id }}
         CLANG_TIDY_OUTCOME: ${{ steps.clang_tidy_checks.outcome }}
         FIND_UNUSED_MEMBERS_OUTCOME: ${{ steps.find_unused_members.outcome }}
-        STARTED_AT: ${{ steps.mark_in_progress.outputs.started_at }}
+        STARTED_AT: ${{ steps.create_check.outputs.started_at }}
+        PR_NUMBER: ${{ inputs.pr_number }}
       run: |
         conclusion=success
         if [ "${{ job.status }}" != "success" ]; then
@@ -114,6 +124,12 @@ jobs:
             }
           }')
 
-        gh api "repos/${{ github.repository }}/check-runs/${{ inputs.check_run_id }}" \
+        gh api "repos/${{ github.repository }}/check-runs/${CHECK_RUN_ID}" \
           --method PATCH \
           --input - <<< "$payload"
+
+        # A failed run un-stages the PR so that "Staged" only stays on PRs that passed.
+        if [ "$conclusion" = "failure" ] && [ -n "$PR_NUMBER" ]; then
+          gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/labels/Staged" \
+            --method DELETE || echo "Could not remove the Staged label (already gone?)"
+        fi
