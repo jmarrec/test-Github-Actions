@@ -10,4 +10,4 @@ jobs:
   dummy:
     runs-on: ubuntu-latest
     steps:
-      - run: echo 'assuming all checks pass'
+      - run: echo 'Assuming all checks pass'
