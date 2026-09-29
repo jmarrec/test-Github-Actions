@@ -32,6 +32,10 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
+    # TEMPORARY: keep the run alive long enough to push another commit and see cancel-in-progress
+    - name: Sleep (to test concurrency group)
+      run: sleep 90
+
     - name: Run energyplus-* clang-tidy checks
       id: clang_tidy_checks
       continue-on-error: true
