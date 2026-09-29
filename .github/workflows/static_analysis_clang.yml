@@ -1,0 +1,108 @@
+name: EnergyPlus Static Analysis
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'ref, branch, tag, or SHA to check out'
+        required: false
+        default: 'develop'
+      check_run_id:
+        description: 'ID of the check run (created by the bot) to update with the result'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  check:
+    name: Check ${{ inputs.ref }}
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Mark check run in progress
+      id: mark_in_progress
+      if: inputs.check_run_id != ''
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        echo "started_at=$started_at" >> "$GITHUB_OUTPUT"
+        gh api "repos/${{ github.repository }}/check-runs/${{ inputs.check_run_id }}" \
+          -X PATCH -f status=in_progress -f started_at="$started_at"
+
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ inputs.ref }}
+
+    - name: Run energyplus-* clang-tidy checks
+      id: clang_tidy_checks
+      continue-on-error: true
+      run: |
+        echo "Mimic Success"
+        exit 0
+
+    - name: Run find_unused_members
+      id: find_unused_members
+      continue-on-error: true
+      run: |
+       echo "Mimic Failure"
+       exit 1
+
+    - name: Fail if any check found something
+      if: |
+        steps.clang_tidy_checks.outcome == 'failure' ||
+        steps.find_unused_members.outcome == 'failure'
+      run: |
+        echo "One or more checks reported findings; see the failed steps above."
+        exit 1
+
+    - name: Report check run result
+      if: always() && inputs.check_run_id != ''
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CLANG_TIDY_OUTCOME: ${{ steps.clang_tidy_checks.outcome }}
+        FIND_UNUSED_MEMBERS_OUTCOME: ${{ steps.find_unused_members.outcome }}
+        STARTED_AT: ${{ steps.mark_in_progress.outputs.started_at }}
+      run: |
+        conclusion=success
+        if [ "${{ job.status }}" != "success" ]; then
+          conclusion=failure
+        fi
+
+        summary="- energyplus-* clang-tidy checks: ${CLANG_TIDY_OUTCOME}\n- find_unused_members: ${FIND_UNUSED_MEMBERS_OUTCOME}"
+
+        # TODO: replace this dummy annotation with real clang-tidy findings, parsed
+        # into one {path, start_line, end_line, annotation_level, message} object per finding.
+        payload=$(jq -n \
+          --arg status "completed" \
+          --arg conclusion "$conclusion" \
+          --arg started_at "$STARTED_AT" \
+          --arg completed_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          --arg title "EnergyPlus Static Analysis" \
+          --arg summary "$(printf '%b' "$summary")" \
+          '{
+            status: $status,
+            conclusion: $conclusion,
+            started_at: $started_at,
+            completed_at: $completed_at,
+            output: {
+              title: $title,
+              summary: $summary,
+              annotations: [
+                {
+                  path: "main.cpp",
+                  start_line: 1,
+                  end_line: 1,
+                  annotation_level: "warning",
+                  title: "Dummy annotation",
+                  message: "This is a placeholder annotation to be replaced with real clang-tidy findings."
+                }
+              ]
+            }
+          }')
+
+        gh api "repos/${{ github.repository }}/check-runs/${{ inputs.check_run_id }}" \
+          --method PATCH \
+          --input - <<< "$payload"
