@@ -1,0 +1,68 @@
+name: EnergyPlus Static Analysis (label based)
+
+# Runs on every push to main, and on pull requests carrying the "Staged" label:
+# adding the label starts a run, and new commits on a staged PR re-run it.
+#
+# There is no secret and no write permission involved: the result is simply the status of
+# the job, which shows up natively in the PR's checks. (For PRs from forks GitHub gives the
+# workflow a read-only token and no secrets, which is all that is needed here.)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [labeled, synchronize]
+
+permissions:
+  contents: read
+
+# A new commit (or a re-label) supersedes the run in progress for the same PR / branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Static analysis
+    # Skipped (reported as such) for any other label than "Staged", and for unstaged PRs.
+    if: >-
+      github.event_name == 'push' ||
+      (contains(github.event.pull_request.labels.*.name, 'Staged') &&
+       (github.event.action != 'labeled' || github.event.label.name == 'Staged'))
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Run energyplus-* clang-tidy checks
+      id: clang_tidy_checks
+      continue-on-error: true
+      run: |
+        echo "Mimic Success"
+        exit 0
+
+    - name: Run find_unused_members
+      id: find_unused_members
+      continue-on-error: true
+      run: |
+        echo "Mimic Failure"
+        exit 1
+
+    - name: Summarize
+      if: always()
+      env:
+        CLANG_TIDY_OUTCOME: ${{ steps.clang_tidy_checks.outcome }}
+        FIND_UNUSED_MEMBERS_OUTCOME: ${{ steps.find_unused_members.outcome }}
+      run: |
+        {
+          echo "### EnergyPlus Static Analysis"
+          echo "- energyplus-* clang-tidy checks: ${CLANG_TIDY_OUTCOME}"
+          echo "- find_unused_members: ${FIND_UNUSED_MEMBERS_OUTCOME}"
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    # Both checks above are continue-on-error so that they all get to run; fail the job here
+    - name: Fail if any check found something
+      if: |
+        steps.clang_tidy_checks.outcome == 'failure' ||
+        steps.find_unused_members.outcome == 'failure'
+      run: |
+        echo "One or more checks reported findings; see the failed steps above."
+        exit 1
