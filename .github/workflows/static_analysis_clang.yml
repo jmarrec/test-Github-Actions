@@ -21,11 +21,22 @@ jobs:
     name: Check ${{ inputs.ref }}
     runs-on: ubuntu-24.04
     steps:
+    # The check run was created by the bot's GitHub App, and only that App can modify it,
+    # so mint an installation token for it (the default GITHUB_TOKEN would get a 403).
+    - name: Create GitHub App token
+      id: app-token
+      if: inputs.check_run_id != ''
+      uses: actions/create-github-app-token@v3
+      with:
+        client-id: ${{ secrets.EPBOT_CLIENT_ID }}
+        private-key: ${{ secrets.EPBOT_PRIVATE_KEY }}
+        permission-checks: write
+
     - name: Mark check run in progress
       id: mark_in_progress
       if: inputs.check_run_id != ''
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
         started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
         echo "started_at=$started_at" >> "$GITHUB_OUTPUT"
@@ -61,7 +72,7 @@ jobs:
     - name: Report check run result
       if: always() && inputs.check_run_id != ''
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         CLANG_TIDY_OUTCOME: ${{ steps.clang_tidy_checks.outcome }}
         FIND_UNUSED_MEMBERS_OUTCOME: ${{ steps.find_unused_members.outcome }}
         STARTED_AT: ${{ steps.mark_in_progress.outputs.started_at }}
